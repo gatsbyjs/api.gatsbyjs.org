@@ -1,0 +1,8 @@
+.env
+!.env.EXAMPLE
+
+node_modules
+
+# Tests
+.nyc_output
+coverage
