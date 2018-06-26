@@ -2,9 +2,9 @@
   "name": "api.gatsbyjs.com",
   "version": "1.0.0",
   "author": "Jason Lengstorf <jason@gatsbyjs.com>",
-  "main": "server.mjs",
+  "main": "index.mjs",
   "scripts": {
-    "start": "node --experimental-modules server.mjs",
+    "start": "node --experimental-modules index.mjs",
     "test": "jest"
   },
   "license": "MIT",
