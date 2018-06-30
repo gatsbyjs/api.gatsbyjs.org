@@ -2,7 +2,6 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { isGitHubContributor } from '../lib/github.mjs';
 import { createShopifyCustomer } from '../lib/shopify.mjs';
-import { addMailChimpSubscriber } from '../lib/mailchimp.mjs';
 import getLogger from '../lib/logger.mjs';
 
 dotenv.config();
@@ -14,8 +13,8 @@ logger.verbose('adding /store routes...');
 
 router.post(
   '/discount-code',
-  async ({ body: { username, email, first_name, last_name } }, res) => {
-    const user = { username, email, first_name, last_name };
+  async ({ body: { username, email, first_name, subscribe } }, res) => {
+    const user = { username, email, first_name, subscribe };
 
     logger.verbose('requesting a discount code for @%s', username);
 
@@ -35,12 +34,11 @@ router.post(
     }
 
     const customer = await createShopifyCustomer(user);
-    const subscriber = await addMailChimpSubscriber(user);
 
     res.status(200).json({
       contributor,
       customer,
-      subscribed: !!subscriber.data.id,
+      subscribed: subscribe,
       discount_code: process.env.SHOPIFY_DISCOUNT_CODE
     });
   }
