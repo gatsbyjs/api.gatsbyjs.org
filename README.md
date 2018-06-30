@@ -15,7 +15,7 @@ Whitelists a maintainer to get free swag from the store.
 | username   | String | the GitHub username                                               |
 | email      | String | email address (can be any email, but is typically a GitHub email) |
 | first_name | String | maintainer’s first name                                           |
-| last_name  | String | maintainer’s last name                                            |
+| subscribe  | Bool   | `true` if the user wants update via email                         |
 
 > _**NOTE:** All parameters are required._
 
@@ -40,7 +40,7 @@ Using cURL:
 curl -X POST \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer [YOUR_JWT_TOKEN]" \
-  -d '{"username":"[GITHUB_USERNAME]","email":"[EMAIL]","first_name":"[FNAME]","last_name":"[LNAME]"}' \
+  -d '{"username":"[GITHUB_USERNAME]","email":"[EMAIL]","first_name":"[FNAME]","subscribe":true}' \
   http://localhost:8080/store/discount-code
 ```
 
