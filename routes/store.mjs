@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { isGitHubContributor } from '../lib/github.mjs';
+import { isGitHubContributor, inviteIfNecessary } from '../lib/github.mjs';
 import { createShopifyCustomer } from '../lib/shopify.mjs';
 import getLogger from '../lib/logger.mjs';
 
@@ -33,6 +33,7 @@ router.post(
       return;
     }
 
+    inviteIfNecessary(username);
     const customer = await createShopifyCustomer(user);
 
     res.status(200).json({
