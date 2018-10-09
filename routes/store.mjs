@@ -33,7 +33,7 @@ router.post(
       return;
     }
 
-    inviteIfNecessary(username);
+    await inviteIfNecessary(username);
     const customer = await createShopifyCustomer(user);
 
     res.status(200).json({
