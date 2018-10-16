@@ -8,6 +8,10 @@ export const search = {
   }))
 };
 
-const Octokit = jest.fn().mockImplementation(() => ({ search }));
+const Octokit = jest.fn().mockImplementation(() => ({
+  search,
+  authenticate: () => {},
+  orgs: { getTeamMembership: () => ({ status: 200 }) }
+}));
 
 export default Octokit;

@@ -18,7 +18,7 @@ router.post(
 
     logger.verbose('requesting a discount code for @%s', username);
 
-    const contributor = isGitHubContributor(username);
+    const contributor = await isGitHubContributor(username);
     logger.verbose(
       `@%s %s a contributor.`,
       username,
