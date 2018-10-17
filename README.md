@@ -51,8 +51,8 @@ curl -X POST \
 ### Step 1: Start the API locally
 
 ```bash
-git clone git@github.com:ichabod-cranes/mansion.git
-cd mansion/api.gatsbyjs.com
+git clone https://github.com/gatsbyjs/api.gatsbyjs.org.git
+cd api.gatsbyjs.com
 yarn
 yarn start
 ```
@@ -68,8 +68,8 @@ To get your JWT token, visit <https://store.gatsbyjs.org> and log in with your G
 3.  Select `access_token` in the main panel
 4.  Copy the JWT token, which will be a value starting with `ey`
 
-### Step 3: Send a test request using cURL
+### Step 3: Send a test request using `cURL`
 
 **IMPORTANT:** Open another terminal. The API needs to still be running.
 
-See the endpoint docs above for test commands.
+See the endpoint docs above for [test commands](#test-this-endpoint).
