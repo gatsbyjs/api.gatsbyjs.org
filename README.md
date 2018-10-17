@@ -52,7 +52,7 @@ curl -X POST \
 
 ```bash
 git clone https://github.com/gatsbyjs/api.gatsbyjs.org.git
-cd api.gatsbyjs.com
+cd api.gatsbyjs.org
 yarn
 yarn start
 ```
