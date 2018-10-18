@@ -51,7 +51,7 @@ curl -X POST \
 ### Step 1: Start the API locally
 
 ```bash
-git clone https://github.com/gatsbyjs/api.gatsbyjs.org.git
+git clone git@github.com:gatsbyjs/api.gatsbyjs.org.git
 cd api.gatsbyjs.org
 yarn
 yarn start
