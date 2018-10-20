@@ -51,8 +51,8 @@ curl -X POST \
 ### Step 1: Start the API locally
 
 ```bash
-git clone git@github.com:ichabod-cranes/mansion.git
-cd mansion/api.gatsbyjs.com
+git clone git@github.com:gatsbyjs/api.gatsbyjs.org.git
+cd api.gatsbyjs.org
 yarn
 yarn start
 ```
@@ -68,8 +68,28 @@ To get your JWT token, visit <https://store.gatsbyjs.org> and log in with your G
 3.  Select `access_token` in the main panel
 4.  Copy the JWT token, which will be a value starting with `ey`
 
-### Step 3: Send a test request using cURL
+### Step 3: Configure `env` variables
+
+The `.env.EXAMPLE` file contains a list of `env` variables used in various locations throughout the repository. Configure each variable's value per your environment setup and credentials.
+
+| Name                    | Description                                                      |
+| ----------------------- | ---------------------------------------------------------------- |
+| `APP_LOGLEVEL`          | The debug log output level.                                      |
+| `APP_HOST`              | The hostname of the API server.                                  |
+| `APP_PORT`              | The port number for the API server.                              |
+| `AUTH0_AUDIENCE`        | The unique identifier for your Auth0 API.                        |
+| `AUTH0_DOMAIN`          | Your Auth0 domain.                                               |
+| `GITHUB_TEAM_ID`        | The GitHub team to which the user should be added.               |
+| `GITHUB_TOKEN`          | Your GitHub authentication token.                                |
+| `GITHUB_ORG`            | The GitHub organization to search for the user's contributions.  |
+| `NODE_ENV`              | The current Node environment in which the API server is running. |
+| `SHOPIFY_API_KEY`       | Your Shopify API key.                                            |
+| `SHOPIFY_API_SECRET`    | Your Shopify API secret.                                         |
+| `SHOPIFY_DISCOUNT_CODE` | The discount code supplied by the Shopify API for the user.      |
+| `SHOPIFY_URI`           | The Shopify API domain.                                          |
+
+### Step 4: Send a test request using `cURL`
 
 **IMPORTANT:** Open another terminal. The API needs to still be running.
 
-See the endpoint docs above for test commands.
+See the endpoint docs above for [test commands](#test-this-endpoint).
