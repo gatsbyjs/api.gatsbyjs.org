@@ -1,6 +1,7 @@
 .env
 !.env.EXAMPLE
 
+.webpack
 node_modules
 
 # Tests
