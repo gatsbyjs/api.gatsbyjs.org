@@ -17,14 +17,14 @@ provider:
 
 functions:
   graphql:
-    handler: graphql/server.graphql
+    handler: src/graphql/server.graphql
     events:
       - http:
           path: graphql
           method: post
           cors: true
   playground:
-    handler: graphql/server.graphql
+    handler: src/graphql/server.graphql
     events:
       - http:
           path: playground
