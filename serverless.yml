@@ -1,6 +1,7 @@
 service: serverless-graphql
 
 plugins:
+  - serverless-dotenv-plugin
   - serverless-webpack
   - serverless-offline
 

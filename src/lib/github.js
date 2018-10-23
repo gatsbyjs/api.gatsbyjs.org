@@ -1,8 +1,5 @@
 import Octokit from '@octokit/rest';
-import dotenv from 'dotenv';
 import getLogger from './logger';
-
-dotenv.config();
 
 const logger = getLogger('lib/github');
 const github = new Octokit();

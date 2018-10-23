@@ -1,8 +1,5 @@
-import dotenv from 'dotenv';
 import { get, post, put } from './request';
 import getLogger from './logger';
-
-dotenv.config();
 
 const logger = getLogger('lib/shopify');
 
