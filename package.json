@@ -5,7 +5,7 @@
   "main": "index.mjs",
   "scripts": {
     "start": "node --experimental-modules index.mjs",
-    "offline": "sls offline start",
+    "develop": "sls offline start",
     "test": "jest"
   },
   "license": "MIT",
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.51",
+    "@babel/preset-env": "^7.1.0",
     "babel-core": "^7.0.0-0",
     "babel-jest": "^23.2.0",
     "babel-loader": "^8.0.4",
@@ -48,7 +49,8 @@
   "jest": {
     "collectCoverage": true,
     "collectCoverageFrom": [
-      "**/*.mjs"
+      "src/**/*.js",
+      "!**/__tests__/**"
     ],
     "transform": {
       "^.+\\.m?js$": "babel-jest"

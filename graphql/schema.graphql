@@ -1,6 +1,0 @@
-type Query {
-  hello: String
-  discountCode: String
-  # TODO: finish this typeDef
-  # getContributorPullRequests:
-}

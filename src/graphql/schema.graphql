@@ -1,0 +1,58 @@
+type Query {
+  """
+  Load information about the contributor’s activity on the Gatsby GitHub org.
+  """
+  contributorInformation(
+    "The contributor’s GitHub username."
+    githubUsername: String!
+  ): ContributorInformation!
+}
+
+type Mutation {
+  """
+  Creates a discount code for the given contributor.
+  """
+  discountCode(
+    "The contributor’s GitHub username. This is used to find Gatsby PRs."
+    githubUsername: String!
+
+    "The email address that should be associated with the Shopify discount code."
+    email: String!
+
+    "The user’s first name. This is used to create their Shopify profile."
+    firstName: String!
+
+    "Whether or not the contributor wants to receive email updates."
+    subscribe: Boolean!
+  ): DiscountCode!
+}
+
+"""
+Details about a given GitHub user‘s contributions to Gatsby.
+"""
+type ContributorInformation {
+  "The number of pull requests this contributor has merged into Gatsby repos."
+  totalContributions: Int!
+
+  "Information about the contributor’s pull requests to Gatsby."
+  pullRequests: [PullRequest]!
+}
+
+type PullRequest {
+  "The title of the pull request."
+  title: String!
+
+  "A link to view the pull request."
+  url: String!
+}
+
+type DiscountCode {
+  """
+  On successful mutation calls, this will contain the discount code for the
+  contributor to redeem for free swag on Shopify.
+  """
+  discountCode: String
+
+  "Any errors that occurred during the mutation call."
+  errors: [String]!
+}

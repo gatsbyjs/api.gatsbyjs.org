@@ -8,10 +8,21 @@ export const search = {
   }))
 };
 
+export const orgs = {
+  addTeamMembership: jest.fn(() => ({
+    data: {
+      state: 'active'
+    }
+  })),
+  getTeamMembership: jest.fn(() => ({
+    status: 200
+  }))
+};
+
 const Octokit = jest.fn().mockImplementation(() => ({
-  search,
   authenticate: () => {},
-  orgs: { getTeamMembership: () => ({ status: 200 }) }
+  orgs,
+  search
 }));
 
 export default Octokit;

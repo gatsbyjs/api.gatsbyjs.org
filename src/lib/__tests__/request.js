@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { post, put } from '../request.mjs';
+import { get, post, put } from '../request';
 
 jest.mock('axios', () => ({
+  get: jest.fn(() => Promise.resolve()),
   post: jest.fn(() => Promise.resolve()),
   put: jest.fn(() => Promise.resolve())
 }));
@@ -40,6 +41,20 @@ describe('lib/request', () => {
       put('/test', { foo: 'bar' });
 
       expect(axios.put).not.toThrow();
+    });
+  });
+
+  describe('get()', () => {
+    test('uses axios to make a GET request', () => {
+      get('/test', { foo: 'bar' }, { config: 'options' });
+
+      expect(axios.get).toBeCalledWith('/test?foo=bar', { config: 'options' });
+    });
+
+    test('doesn’t complain without config options', () => {
+      get('/test', { foo: 'bar' });
+
+      expect(axios.get).not.toThrow();
     });
   });
 });
