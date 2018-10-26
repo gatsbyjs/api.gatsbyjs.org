@@ -1,0 +1,38 @@
+service: serverless-graphql
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-webpack
+  - serverless-offline
+  - serverless-domain-manager
+
+custom:
+  customDomain:
+    domainName: api.gatsbyjs.org
+    basePath: ''
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: us-west-2
+
+functions:
+  graphql:
+    handler: src/graphql/server.graphql
+    events:
+      - http:
+          path: graphql
+          method: post
+          cors: true
+  playground:
+    handler: src/graphql/server.graphql
+    events:
+      - http:
+          path: playground
+          method: get

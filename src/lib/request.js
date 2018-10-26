@@ -1,32 +1,23 @@
 import axios from 'axios';
 import querystring from 'querystring';
-import getLogger from './logger.mjs';
+import getLogger from './logger';
 
 const logger = getLogger('lib/request');
 
-const logAndReturn = val => {
-  const { status, statusText, data } = val;
-  logger.verbose('%d: %s', status, statusText);
-
-  return val;
-};
-
 export const put = (uri, payload, config = {}) => {
   logger.verbose('Sending a PUT request to %s', uri);
-  logger.verbose('Payload:', payload);
-  return axios.put(uri, payload, config).then(logAndReturn);
+  return axios.put(uri, payload, config);
 };
 
 export const post = (uri, payload, config = {}) => {
   logger.verbose('Sending a POST request to %s', uri);
-  logger.verbose('Payload:', payload);
-  return axios.post(uri, payload, config).then(logAndReturn);
+  return axios.post(uri, payload, config);
 };
 
 export const get = (uri, queryObject, config = {}) => {
   const queryString = querystring.stringify(queryObject);
   logger.verbose('Sending a GET request to %s', uri);
-  logger.verbose('QueryString:', queryString);
+  logger.verbose('QueryString: %s', queryString);
 
-  return axios.get(`${uri}?${queryString}`, config).then(logAndReturn);
+  return axios.get(`${uri}?${queryString}`, config);
 };

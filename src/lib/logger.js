@@ -1,7 +1,4 @@
-import dotenv from 'dotenv';
 import winston from 'winston';
-
-dotenv.config();
 
 const addLabel = winston.format(info => {
   // Add the label to the message.

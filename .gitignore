@@ -1,6 +1,8 @@
 .env
 !.env.EXAMPLE
 
+.serverless
+.webpack
 node_modules
 
 # Tests
