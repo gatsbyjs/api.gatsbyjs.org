@@ -6,16 +6,6 @@ import {
   getCustomerByEmail
 } from '../shopify';
 
-jest.mock('dotenv', () => ({
-  config: () => {
-    // Provide the env vars expected by the lib
-    process.env.SHOPIFY_API_KEY = 'TEST_SHOPIFY_API_KEY';
-    process.env.SHOPIFY_API_SECRET = 'TEST_SHOPIFY_API_SECRET';
-    process.env.SHOPIFY_URI = 'TEST_SHOPIFY_URI';
-    process.env.SHOPIFY_DISCOUNT_CODE = 'TEST_SHOPIFY_DISCOUNT_CODE';
-  }
-}));
-
 let mockReturn = () => {};
 const mockPayload = {
   username: 'testuser',
@@ -33,6 +23,12 @@ jest.mock('../request', () => ({
 describe('lib/shopify', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+
+    // Provide the env vars expected by the lib
+    process.env.SHOPIFY_API_KEY = 'TEST_SHOPIFY_API_KEY';
+    process.env.SHOPIFY_API_SECRET = 'TEST_SHOPIFY_API_SECRET';
+    process.env.SHOPIFY_URI = 'TEST_SHOPIFY_URI';
+    process.env.SHOPIFY_DISCOUNT_CODE = 'TEST_SHOPIFY_DISCOUNT_CODE';
   });
 
   describe('addContributorTagToCustomer()', () => {
