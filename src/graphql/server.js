@@ -2,8 +2,8 @@ import express from 'express';
 import jwt from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
 import serverless from 'serverless-http';
-import graphiql from 'graphql-playground-middleware-express';
-import { ApolloServer, gql } from 'apollo-server-express';
+import graphqlPlayground from 'graphql-playground-middleware-express';
+import { ApolloServer } from 'apollo-server-express';
 import typeDefs from './schema.graphql';
 import resolvers from './resolvers';
 
@@ -22,17 +22,28 @@ const requireValidJWT = jwt({
 
 const app = express();
 
-// Make sure a valid token is present before doing anything else.
-app.use(requireValidJWT);
+// Disable the GraphQL Playground in production; it doesn’t work well anyways.
+const playground =
+  process.env.NODE_ENV === 'development'
+    ? graphqlPlayground({ endpoint: '/graphql' })
+    : (_, res) => res.send(404);
 
-// If there’s an auth error, send it as JSON so it’s useful in the GraphQL output.
-app.use((err, _, res, next) => {
-  if (err) {
-    res.json(err);
-  }
+// We have to set up the GraphQL Playground _before_ the auth check.
+app.get('/playground', playground);
 
-  next();
-});
+if (process.env.NODE_ENV !== 'development') {
+  // In production, make sure a valid token is present before doing anything.
+  app.use(requireValidJWT);
+
+  // If there’s an error, send it as JSON so it’s useful in the GraphQL output.
+  app.use((err, _, res, next) => {
+    if (err) {
+      res.json(err);
+    }
+
+    next();
+  });
+}
 
 // Set up the GraphQL server.
 const server = new ApolloServer({
@@ -43,8 +54,7 @@ const server = new ApolloServer({
 
 server.applyMiddleware({ app });
 
-app.get('/playground', graphiql({ endpoint: '/graphql' }));
-
+// Turn the Express server into a lambda-compatible handler function.
 const handler = serverless(app);
 
 export const graphql = async (event, context) => {
