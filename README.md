@@ -10,8 +10,6 @@ All GraphQL calls are sent to this endpoint.
 
 For a full schema reference, see [the schema](./src/graphql/schema.graphql).
 
-> _**NOTE:** See the ["How to Test This API"](#how-to-test-this-api) section for instructions on sending test requests to this API._
-
 ## Running This Repo Locally
 
 ### Step 1: Clone the API
