@@ -6,6 +6,8 @@ type Query {
     "The contributor’s GitHub username."
     githubUsername: String!
   ): ContributorInformation!
+
+  openIssues(label: String!): OpenIssues!
 }
 
 type Mutation {
@@ -35,15 +37,34 @@ type ContributorInformation {
   totalContributions: Int!
 
   "Information about the contributor’s pull requests to Gatsby."
-  pullRequests: [PullRequest]!
+  pullRequests: [GitHubIssue]!
 }
 
-type PullRequest {
+type OpenPullRequests {
+  totalPullRequests: Int!
+
+  pullRequests: [GitHubIssue]!
+}
+
+type OpenIssues {
+  totalIssues: Int!
+  issues: [GitHubIssue]
+}
+
+type GitHubIssue {
+  id: ID!
+
   "The title of the pull request."
   title: String!
 
   "A link to view the pull request."
   url: String!
+
+  "The number of the pull request."
+  number: Int!
+
+  "Array of GitHub labels applied to this pull request."
+  labels: [GitHubLabel]!
 }
 
 type DiscountCode {
@@ -55,4 +76,9 @@ type DiscountCode {
 
   "Any errors that occurred during the mutation call."
   errors: [String]!
+}
+
+type GitHubLabel {
+  name: String!
+  url: String!
 }
