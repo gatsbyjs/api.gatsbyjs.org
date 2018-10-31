@@ -16,9 +16,32 @@ export const getContributorInfo = async username => {
   return {
     totalContributions: response.data.total_count,
     pullRequests: response.data.items.map(item => ({
+      id: item.id,
       title: item.title,
       url: item.html_url,
-      number: item.number
+      number: item.number,
+      labels: item.labels.map(({ name, url }) => ({ name, url }))
+    }))
+  };
+};
+
+export const getOpenIssuesByLabel = async label => {
+  logger.verbose('loading issues with the label %s', label);
+
+  const response = await github.search.issues({
+    q: `org:gatsbyjs type:issue label:"${label}" is:open`,
+    sort: 'updated',
+    order: 'desc'
+  });
+
+  return {
+    totalIssues: response.data.total_count,
+    issues: response.data.items.map(item => ({
+      id: item.id,
+      title: item.title,
+      url: item.html_url,
+      number: item.number,
+      labels: item.labels.map(({ name, url }) => ({ name, url }))
     }))
   };
 };

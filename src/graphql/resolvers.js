@@ -1,5 +1,6 @@
 import {
   getContributorInfo,
+  getOpenIssuesByLabel,
   isGitHubContributor,
   inviteIfNecessary
 } from '../lib/github';
@@ -12,6 +13,9 @@ export default {
   Query: {
     contributorInformation: async (_, { githubUsername }) => {
       return await getContributorInfo(githubUsername);
+    },
+    openIssues: async (_, { label }) => {
+      return await getOpenIssuesByLabel(label);
     }
   },
   Mutation: {
