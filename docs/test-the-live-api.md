@@ -6,7 +6,7 @@ In the event you want to send a request to the live API, you'll need to get a JW
 
 To get your JWT token, visit <https://store.gatsbyjs.org> and log in with your GitHub account. Next, open Chrome Developer tools and follow these steps.
 
-![Getting a JWT token in Chrome dev tools](docs/images/jwt-token.png)
+![Getting a JWT token in Chrome dev tools](images/jwt-token.png)
 
 1.  Navigate to the "Application" tab
 2.  Select `https://store.gatsbyjs.org` under "Local Storage" in the left-hand panel
