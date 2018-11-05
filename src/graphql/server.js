@@ -49,10 +49,11 @@ if (process.env.NODE_ENV !== 'development') {
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  path: '/graphql'
+  path: '/graphql',
+  cors: true
 });
 
-server.applyMiddleware({ app });
+server.applyMiddleware({ app, cors: true });
 
 // Turn the Express server into a lambda-compatible handler function.
 const handler = serverless(app);
