@@ -88,7 +88,9 @@ export const createShopifyCustomer = async ({
       first_name,
       email,
       accepts_marketing: subscribe,
+      // TODO include level 2 if qualified
       tags: 'contributor',
+      // TODO this is useless, so we can drop it
       metafields: [
         {
           key: 'github',

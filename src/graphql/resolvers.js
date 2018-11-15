@@ -4,8 +4,10 @@ import {
   isGitHubContributor,
   inviteIfNecessary
 } from '../lib/github';
-import { createShopifyCustomer } from '../lib/shopify';
+import { createShopifyCustomer as createShopifyCustomerRest } from '../lib/shopify';
+import { createShopifyCustomer } from '../lib/shopify-graphql';
 import getLogger from '../lib/logger';
+import { prisma } from '../prisma-client';
 
 const logger = getLogger('graphql/resolvers');
 
@@ -16,6 +18,27 @@ export default {
     },
     openIssues: async (_, { label }) => {
       return await getOpenIssuesByLabel(label);
+    },
+    getContributor: async (_, { githubUsername }) => {
+      // TODO when should we create the contributor the first time?
+      // const resp = await prisma.createContributor({
+      //   githubUsername: 'jlengstorf',
+      //   email: 'jason@gatsbyjs.com'
+      // });
+
+      const [contributor, contributorInfo] = await Promise.all([
+        prisma.contributor({ githubUsername }),
+        getContributorInfo(githubUsername)
+      ]);
+
+      if (!contributor || !contributor.githubUsername) {
+        return null;
+      }
+
+      return {
+        ...contributor,
+        githubPullRequestCount: contributorInfo.totalContributions
+      };
     }
   },
   Mutation: {
@@ -30,6 +53,7 @@ export default {
       logger.verbose('requesting a discount code for @%s', githubUsername);
 
       try {
+        // TODO will need to return level
         const isContributor = await isGitHubContributor(githubUsername);
 
         logger.verbose(
@@ -43,7 +67,7 @@ export default {
           await inviteIfNecessary(githubUsername);
 
           // Create a Shopify customer to associate with the discount code.
-          await createShopifyCustomer({
+          await createShopifyCustomerRest({
             username: githubUsername,
             first_name: firstName,
             email,
@@ -62,6 +86,10 @@ export default {
         discountCode: errors.length === 0 ? code : null,
         errors
       };
+    },
+
+    createShopifyCustomer: async (_, { input }) => {
+      return await createShopifyCustomer(input);
     }
   }
 };

@@ -7,6 +7,8 @@ type Query {
     githubUsername: String!
   ): ContributorInformation!
 
+  getContributor(githubUsername: ID!): Contributor
+
   openIssues(label: String!): OpenIssues!
 }
 
@@ -27,6 +29,28 @@ type Mutation {
     "Whether or not the contributor wants to receive email updates."
     subscribe: Boolean!
   ): DiscountCode!
+
+  createShopifyCustomer(input: ShopifyCustomerInput): ID!
+}
+
+input ShopifyCustomerInput {
+  githubUsername: String!
+  email: String!
+  firstName: String!
+  acceptsMarketing: Boolean!
+}
+
+type Contributor {
+  email: ID! # this can be stored
+  githubUsername: ID! # this can be stored
+  githubPullRequestCount: Int # pull from GitHub every time
+  shopifyCustomerID: ID # can be stored
+  shopifyCodes: [ShopifyDiscountCode] # pull from Shopify
+}
+
+type ShopifyDiscountCode {
+  code: String!
+  used: Boolean!
 }
 
 """
