@@ -44,6 +44,7 @@
     "serverless-domain-manager": "^2.6.5",
     "serverless-dotenv-plugin": "^2.0.1",
     "serverless-offline": "^3.28.0",
+    "serverless-plugin-warmup": "^4.2.0-rc.1",
     "serverless-webpack": "^5.2.0",
     "webpack": "^4.22.0",
     "webpack-node-externals": "^1.7.2"
