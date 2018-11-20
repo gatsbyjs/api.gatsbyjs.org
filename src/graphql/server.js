@@ -60,7 +60,7 @@ const handler = serverless(app);
 export const graphql = async (event, context) => {
   // Prevents Lambda cold starts
   if (event.source === 'serverless-plugin-warmup') {
-    return callback(null, 'Lambda is warm!');
+    return 'Lambda is warm!';
   }
 
   return await handler(event, context);
