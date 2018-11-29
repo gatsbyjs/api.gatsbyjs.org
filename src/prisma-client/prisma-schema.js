@@ -8,9 +8,9 @@ type BatchPayload {
 }
 
 type Contributor {
-  email: String!
+  email: String
   githubUsername: String!
-  shopifyCustomerID: ID
+  shopifyCustomerID: String
 }
 
 type ContributorConnection {
@@ -20,9 +20,9 @@ type ContributorConnection {
 }
 
 input ContributorCreateInput {
-  email: String!
+  email: String
   githubUsername: String!
-  shopifyCustomerID: ID
+  shopifyCustomerID: String
 }
 
 type ContributorEdge {
@@ -46,9 +46,9 @@ enum ContributorOrderByInput {
 }
 
 type ContributorPreviousValues {
-  email: String!
+  email: String
   githubUsername: String!
-  shopifyCustomerID: ID
+  shopifyCustomerID: String
 }
 
 type ContributorSubscriptionPayload {
@@ -72,13 +72,13 @@ input ContributorSubscriptionWhereInput {
 input ContributorUpdateInput {
   email: String
   githubUsername: String
-  shopifyCustomerID: ID
+  shopifyCustomerID: String
 }
 
 input ContributorUpdateManyMutationInput {
   email: String
   githubUsername: String
-  shopifyCustomerID: ID
+  shopifyCustomerID: String
 }
 
 input ContributorWhereInput {
@@ -110,20 +110,20 @@ input ContributorWhereInput {
   githubUsername_not_starts_with: String
   githubUsername_ends_with: String
   githubUsername_not_ends_with: String
-  shopifyCustomerID: ID
-  shopifyCustomerID_not: ID
-  shopifyCustomerID_in: [ID!]
-  shopifyCustomerID_not_in: [ID!]
-  shopifyCustomerID_lt: ID
-  shopifyCustomerID_lte: ID
-  shopifyCustomerID_gt: ID
-  shopifyCustomerID_gte: ID
-  shopifyCustomerID_contains: ID
-  shopifyCustomerID_not_contains: ID
-  shopifyCustomerID_starts_with: ID
-  shopifyCustomerID_not_starts_with: ID
-  shopifyCustomerID_ends_with: ID
-  shopifyCustomerID_not_ends_with: ID
+  shopifyCustomerID: String
+  shopifyCustomerID_not: String
+  shopifyCustomerID_in: [String!]
+  shopifyCustomerID_not_in: [String!]
+  shopifyCustomerID_lt: String
+  shopifyCustomerID_lte: String
+  shopifyCustomerID_gt: String
+  shopifyCustomerID_gte: String
+  shopifyCustomerID_contains: String
+  shopifyCustomerID_not_contains: String
+  shopifyCustomerID_starts_with: String
+  shopifyCustomerID_not_starts_with: String
+  shopifyCustomerID_ends_with: String
+  shopifyCustomerID_not_ends_with: String
   AND: [ContributorWhereInput!]
   OR: [ContributorWhereInput!]
   NOT: [ContributorWhereInput!]
@@ -132,6 +132,7 @@ input ContributorWhereInput {
 input ContributorWhereUniqueInput {
   email: String
   githubUsername: String
+  shopifyCustomerID: String
 }
 
 scalar Long

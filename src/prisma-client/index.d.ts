@@ -120,23 +120,11 @@ export type ContributorOrderByInput =
 
 export type MutationType = "CREATED" | "UPDATED" | "DELETED";
 
-export interface ContributorCreateInput {
+export type ContributorWhereUniqueInput = AtLeastOne<{
   email: String;
-  githubUsername: String;
-  shopifyCustomerID?: ID_Input;
-}
-
-export interface ContributorUpdateInput {
-  email?: String;
   githubUsername?: String;
-  shopifyCustomerID?: ID_Input;
-}
-
-export interface ContributorUpdateManyMutationInput {
-  email?: String;
-  githubUsername?: String;
-  shopifyCustomerID?: ID_Input;
-}
+  shopifyCustomerID?: String;
+}>;
 
 export interface ContributorWhereInput {
   email?: String;
@@ -167,23 +155,41 @@ export interface ContributorWhereInput {
   githubUsername_not_starts_with?: String;
   githubUsername_ends_with?: String;
   githubUsername_not_ends_with?: String;
-  shopifyCustomerID?: ID_Input;
-  shopifyCustomerID_not?: ID_Input;
-  shopifyCustomerID_in?: ID_Input[] | ID_Input;
-  shopifyCustomerID_not_in?: ID_Input[] | ID_Input;
-  shopifyCustomerID_lt?: ID_Input;
-  shopifyCustomerID_lte?: ID_Input;
-  shopifyCustomerID_gt?: ID_Input;
-  shopifyCustomerID_gte?: ID_Input;
-  shopifyCustomerID_contains?: ID_Input;
-  shopifyCustomerID_not_contains?: ID_Input;
-  shopifyCustomerID_starts_with?: ID_Input;
-  shopifyCustomerID_not_starts_with?: ID_Input;
-  shopifyCustomerID_ends_with?: ID_Input;
-  shopifyCustomerID_not_ends_with?: ID_Input;
+  shopifyCustomerID?: String;
+  shopifyCustomerID_not?: String;
+  shopifyCustomerID_in?: String[] | String;
+  shopifyCustomerID_not_in?: String[] | String;
+  shopifyCustomerID_lt?: String;
+  shopifyCustomerID_lte?: String;
+  shopifyCustomerID_gt?: String;
+  shopifyCustomerID_gte?: String;
+  shopifyCustomerID_contains?: String;
+  shopifyCustomerID_not_contains?: String;
+  shopifyCustomerID_starts_with?: String;
+  shopifyCustomerID_not_starts_with?: String;
+  shopifyCustomerID_ends_with?: String;
+  shopifyCustomerID_not_ends_with?: String;
   AND?: ContributorWhereInput[] | ContributorWhereInput;
   OR?: ContributorWhereInput[] | ContributorWhereInput;
   NOT?: ContributorWhereInput[] | ContributorWhereInput;
+}
+
+export interface ContributorCreateInput {
+  email?: String;
+  githubUsername: String;
+  shopifyCustomerID?: String;
+}
+
+export interface ContributorUpdateInput {
+  email?: String;
+  githubUsername?: String;
+  shopifyCustomerID?: String;
+}
+
+export interface ContributorUpdateManyMutationInput {
+  email?: String;
+  githubUsername?: String;
+  shopifyCustomerID?: String;
 }
 
 export interface ContributorSubscriptionWhereInput {
@@ -197,120 +203,20 @@ export interface ContributorSubscriptionWhereInput {
   NOT?: ContributorSubscriptionWhereInput[] | ContributorSubscriptionWhereInput;
 }
 
-export type ContributorWhereUniqueInput = AtLeastOne<{
-  email: String;
-  githubUsername?: String;
-}>;
-
 export interface NodeNode {
   id: ID_Output;
 }
 
-export interface AggregateContributor {
-  count: Int;
-}
-
-export interface AggregateContributorPromise
-  extends Promise<AggregateContributor>,
-    Fragmentable {
-  count: () => Promise<Int>;
-}
-
-export interface AggregateContributorSubscription
-  extends Promise<AsyncIterator<AggregateContributor>>,
-    Fragmentable {
-  count: () => Promise<AsyncIterator<Int>>;
-}
-
-export interface BatchPayload {
-  count: Long;
-}
-
-export interface BatchPayloadPromise
-  extends Promise<BatchPayload>,
-    Fragmentable {
-  count: () => Promise<Long>;
-}
-
-export interface BatchPayloadSubscription
-  extends Promise<AsyncIterator<BatchPayload>>,
-    Fragmentable {
-  count: () => Promise<AsyncIterator<Long>>;
-}
-
-export interface ContributorPreviousValues {
-  email: String;
-  githubUsername: String;
-  shopifyCustomerID?: ID_Output;
-}
-
-export interface ContributorPreviousValuesPromise
-  extends Promise<ContributorPreviousValues>,
-    Fragmentable {
-  email: () => Promise<String>;
-  githubUsername: () => Promise<String>;
-  shopifyCustomerID: () => Promise<ID_Output>;
-}
-
-export interface ContributorPreviousValuesSubscription
-  extends Promise<AsyncIterator<ContributorPreviousValues>>,
-    Fragmentable {
-  email: () => Promise<AsyncIterator<String>>;
-  githubUsername: () => Promise<AsyncIterator<String>>;
-  shopifyCustomerID: () => Promise<AsyncIterator<ID_Output>>;
-}
-
-export interface ContributorEdge {
-  cursor: String;
-}
-
-export interface ContributorEdgePromise
-  extends Promise<ContributorEdge>,
-    Fragmentable {
-  node: <T = ContributorPromise>() => T;
-  cursor: () => Promise<String>;
-}
-
-export interface ContributorEdgeSubscription
-  extends Promise<AsyncIterator<ContributorEdge>>,
-    Fragmentable {
-  node: <T = ContributorSubscription>() => T;
-  cursor: () => Promise<AsyncIterator<String>>;
-}
-
-export interface ContributorSubscriptionPayload {
-  mutation: MutationType;
-  updatedFields?: String[];
-}
-
-export interface ContributorSubscriptionPayloadPromise
-  extends Promise<ContributorSubscriptionPayload>,
-    Fragmentable {
-  mutation: () => Promise<MutationType>;
-  node: <T = ContributorPromise>() => T;
-  updatedFields: () => Promise<String[]>;
-  previousValues: <T = ContributorPreviousValuesPromise>() => T;
-}
-
-export interface ContributorSubscriptionPayloadSubscription
-  extends Promise<AsyncIterator<ContributorSubscriptionPayload>>,
-    Fragmentable {
-  mutation: () => Promise<AsyncIterator<MutationType>>;
-  node: <T = ContributorSubscription>() => T;
-  updatedFields: () => Promise<AsyncIterator<String[]>>;
-  previousValues: <T = ContributorPreviousValuesSubscription>() => T;
-}
-
 export interface Contributor {
-  email: String;
+  email?: String;
   githubUsername: String;
-  shopifyCustomerID?: ID_Output;
+  shopifyCustomerID?: String;
 }
 
 export interface ContributorPromise extends Promise<Contributor>, Fragmentable {
   email: () => Promise<String>;
   githubUsername: () => Promise<String>;
-  shopifyCustomerID: () => Promise<ID_Output>;
+  shopifyCustomerID: () => Promise<String>;
 }
 
 export interface ContributorSubscription
@@ -318,7 +224,7 @@ export interface ContributorSubscription
     Fragmentable {
   email: () => Promise<AsyncIterator<String>>;
   githubUsername: () => Promise<AsyncIterator<String>>;
-  shopifyCustomerID: () => Promise<AsyncIterator<ID_Output>>;
+  shopifyCustomerID: () => Promise<AsyncIterator<String>>;
 }
 
 export interface ContributorConnection {}
@@ -362,13 +268,100 @@ export interface PageInfoSubscription
   endCursor: () => Promise<AsyncIterator<String>>;
 }
 
-/*
-The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `"4"`) or integer (such as `4`) input value will be accepted as an ID.
-*/
-export type ID_Input = string | number;
-export type ID_Output = string;
+export interface ContributorEdge {
+  cursor: String;
+}
 
-export type Long = string;
+export interface ContributorEdgePromise
+  extends Promise<ContributorEdge>,
+    Fragmentable {
+  node: <T = ContributorPromise>() => T;
+  cursor: () => Promise<String>;
+}
+
+export interface ContributorEdgeSubscription
+  extends Promise<AsyncIterator<ContributorEdge>>,
+    Fragmentable {
+  node: <T = ContributorSubscription>() => T;
+  cursor: () => Promise<AsyncIterator<String>>;
+}
+
+export interface AggregateContributor {
+  count: Int;
+}
+
+export interface AggregateContributorPromise
+  extends Promise<AggregateContributor>,
+    Fragmentable {
+  count: () => Promise<Int>;
+}
+
+export interface AggregateContributorSubscription
+  extends Promise<AsyncIterator<AggregateContributor>>,
+    Fragmentable {
+  count: () => Promise<AsyncIterator<Int>>;
+}
+
+export interface BatchPayload {
+  count: Long;
+}
+
+export interface BatchPayloadPromise
+  extends Promise<BatchPayload>,
+    Fragmentable {
+  count: () => Promise<Long>;
+}
+
+export interface BatchPayloadSubscription
+  extends Promise<AsyncIterator<BatchPayload>>,
+    Fragmentable {
+  count: () => Promise<AsyncIterator<Long>>;
+}
+
+export interface ContributorSubscriptionPayload {
+  mutation: MutationType;
+  updatedFields?: String[];
+}
+
+export interface ContributorSubscriptionPayloadPromise
+  extends Promise<ContributorSubscriptionPayload>,
+    Fragmentable {
+  mutation: () => Promise<MutationType>;
+  node: <T = ContributorPromise>() => T;
+  updatedFields: () => Promise<String[]>;
+  previousValues: <T = ContributorPreviousValuesPromise>() => T;
+}
+
+export interface ContributorSubscriptionPayloadSubscription
+  extends Promise<AsyncIterator<ContributorSubscriptionPayload>>,
+    Fragmentable {
+  mutation: () => Promise<AsyncIterator<MutationType>>;
+  node: <T = ContributorSubscription>() => T;
+  updatedFields: () => Promise<AsyncIterator<String[]>>;
+  previousValues: <T = ContributorPreviousValuesSubscription>() => T;
+}
+
+export interface ContributorPreviousValues {
+  email?: String;
+  githubUsername: String;
+  shopifyCustomerID?: String;
+}
+
+export interface ContributorPreviousValuesPromise
+  extends Promise<ContributorPreviousValues>,
+    Fragmentable {
+  email: () => Promise<String>;
+  githubUsername: () => Promise<String>;
+  shopifyCustomerID: () => Promise<String>;
+}
+
+export interface ContributorPreviousValuesSubscription
+  extends Promise<AsyncIterator<ContributorPreviousValues>>,
+    Fragmentable {
+  email: () => Promise<AsyncIterator<String>>;
+  githubUsername: () => Promise<AsyncIterator<String>>;
+  shopifyCustomerID: () => Promise<AsyncIterator<String>>;
+}
 
 /*
 The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
@@ -384,6 +377,14 @@ export type Int = number;
 The `Boolean` scalar type represents `true` or `false`.
 */
 export type Boolean = boolean;
+
+/*
+The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `"4"`) or integer (such as `4`) input value will be accepted as an ID.
+*/
+export type ID_Input = string | number;
+export type ID_Output = string;
+
+export type Long = string;
 
 /**
  * Model Metadata

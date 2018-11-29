@@ -19,11 +19,10 @@ export const createShopifyCustomer = async ({
     tags.push('level2');
   }
 
-  // TODO figure out how to insert a boolean in a template string
   const mutation = `
     mutation {
       customerCreate(input: {
-        acceptsMarketing: true
+        acceptsMarketing: ${acceptsMarketing}
         firstName: "${firstName}"
         email: "${email}"
         tags: ${JSON.stringify(tags)}
@@ -54,8 +53,39 @@ export const createShopifyCustomer = async ({
   return response.data.data.customerCreate.customer.id;
 };
 
-export const getCustomer = () => {
-  return axios({
+// 1. need to know all available codes
+// 2. determine whether contribution count qualifies for 1-2 codes
+// 3. see which ones are used
+const returnCodeStatus = (orders, contributionCount) => {
+  const allContributorCodes = [
+    {
+      code: 'BUILDWITHGATSBY',
+      // rename this shizz
+      threshold: 1
+    },
+    {
+      code: 'LEVEL2',
+      threshold: 5
+    }
+  ];
+
+  const earnedCodes = allContributorCodes
+    .filter(code => {
+      return contributionCount >= code.threshold;
+    })
+    .map(({ code }) => code);
+
+  orders.map(({ node: { discountCode } }) => ({
+    code: discountCode,
+    used: earnedCodes.includes(discountCode)
+  }));
+};
+
+export const getCustomerCodes = async (
+  shopifyCustomerID,
+  contributionCount
+) => {
+  const orders = await axios({
     method: 'post',
     url: `https://${process.env.SHOPIFY_URI}/admin/api/graphql.json`,
     headers: {
@@ -64,11 +94,11 @@ export const getCustomer = () => {
     },
     data: `
        {
-        customer(id: "gid://shopify/Customer/624470163544") {
+        customer(id: "${shopifyCustomerID}") {
           orders(first: 100) {
             edges {
               node {
-                id
+                discountCode
               }
             }
           }
@@ -76,4 +106,10 @@ export const getCustomer = () => {
       }
     `
   });
+
+  // @todo: error handling
+  return returnCodeStatus(
+    orders.data.data.customer.orders.edges,
+    contributionCount
+  );
 };

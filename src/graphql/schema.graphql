@@ -30,10 +30,10 @@ type Mutation {
     subscribe: Boolean!
   ): DiscountCode!
 
-  createShopifyCustomer(input: ShopifyCustomerInput): ID!
+  createCustomer(input: CreateCustomerInput): Contributor
 }
 
-input ShopifyCustomerInput {
+input CreateCustomerInput {
   githubUsername: String!
   email: String!
   firstName: String!
@@ -41,8 +41,8 @@ input ShopifyCustomerInput {
 }
 
 type Contributor {
-  email: ID! # this can be stored
   githubUsername: ID! # this can be stored
+  email: ID # this can be stored
   githubPullRequestCount: Int # pull from GitHub every time
   shopifyCustomerID: ID # can be stored
   shopifyCodes: [ShopifyDiscountCode] # pull from Shopify

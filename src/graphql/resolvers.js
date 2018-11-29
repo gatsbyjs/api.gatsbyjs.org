@@ -5,7 +5,10 @@ import {
   inviteIfNecessary
 } from '../lib/github';
 import { createShopifyCustomer as createShopifyCustomerRest } from '../lib/shopify';
-import { createShopifyCustomer } from '../lib/shopify-graphql';
+import {
+  createShopifyCustomer,
+  getCustomerCodes
+} from '../lib/shopify-graphql';
 import getLogger from '../lib/logger';
 import { prisma } from '../prisma-client';
 
@@ -20,20 +23,28 @@ export default {
       return await getOpenIssuesByLabel(label);
     },
     getContributor: async (_, { githubUsername }) => {
-      // TODO when should we create the contributor the first time?
-      // const resp = await prisma.createContributor({
-      //   githubUsername: 'jlengstorf',
-      //   email: 'jason@gatsbyjs.com'
-      // });
-
+      // currently this works for an already-created user
       const [contributor, contributorInfo] = await Promise.all([
         prisma.contributor({ githubUsername }),
         getContributorInfo(githubUsername)
       ]);
 
       if (!contributor || !contributor.githubUsername) {
-        return null;
+        return {
+          githubUsername,
+          githubPullRequestCount: contributorInfo.totalContributions
+        };
       }
+
+      const orders = await getCustomerCodes(
+        contributor.shopifyCustomerID,
+        contributorInfo.totalContributions
+      );
+
+      console.log(
+        'orders',
+        JSON.stringify(orders.data.data.customer.orders.edges)
+      );
 
       return {
         ...contributor,
@@ -88,8 +99,33 @@ export default {
       };
     },
 
-    createShopifyCustomer: async (_, { input }) => {
-      return await createShopifyCustomer(input);
+    createCustomer: async (_, { input }) => {
+      const shopifyCustomerID = await createShopifyCustomer(input);
+
+      console.log('shopifyCustomerID:', shopifyCustomerID);
+
+      // @todo: error handling
+      const prismaRecord = await prisma.createContributor({
+        githubUsername: input.githubUsername,
+        email: input.email,
+        shopifyCustomerID
+      });
+
+      console.log('prismaRecord', prismaRecord);
+
+      const { totalContributions } = await getContributorInfo(
+        input.githubUsername
+      );
+
+      console.log('totalContributions', totalContributions);
+
+      return {
+        githubUsername: input.githubUsername,
+        email: input.email,
+        githubPullRequestCount: totalContributions,
+        shopifyCustomerID,
+        shopifyCodes: [{ code: 'test', used: false }]
+      };
     }
   }
 };
