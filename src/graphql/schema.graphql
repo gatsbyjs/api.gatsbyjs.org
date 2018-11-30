@@ -5,7 +5,7 @@ type Query {
   contributorInformation(
     "The contributor’s GitHub username."
     githubUsername: String!
-  ): ContributorInformation!
+  ): ContributorInformation! @deprecated(reason: "use getContributor instead")
 
   getContributor(githubUsername: ID!): Contributor
 
@@ -28,12 +28,12 @@ type Mutation {
 
     "Whether or not the contributor wants to receive email updates."
     subscribe: Boolean!
-  ): DiscountCode!
+  ): DiscountCode! @deprecated(reason: "use createContributor instead")
 
-  createCustomer(input: CreateCustomerInput): Contributor
+  createContributor(input: CreateContributorInput): Contributor
 }
 
-input CreateCustomerInput {
+input CreateContributorInput {
   githubUsername: String!
   email: String!
   firstName: String!
@@ -44,6 +44,7 @@ type Contributor {
   githubUsername: ID! # this can be stored
   email: ID # this can be stored
   githubPullRequestCount: Int # pull from GitHub every time
+  githubPullRequests: [GitHubIssue] # pull from GitHub
   shopifyCustomerID: ID # can be stored
   shopifyCodes: [ShopifyDiscountCode] # pull from Shopify
 }

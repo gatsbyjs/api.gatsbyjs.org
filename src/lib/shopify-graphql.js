@@ -1,6 +1,11 @@
 import axios from 'axios';
 import { getContributorInfo } from './github';
 
+/* @todo: add tags
+ * https://help.shopify.com/en/api/graphql-admin-api/reference/mutation/tagsadd
+ * https://help.shopify.com/en/api/graphql-admin-api/reference/mutation/customerupdate
+ */
+
 export const createShopifyCustomer = async ({
   githubUsername,
   email,
@@ -85,7 +90,7 @@ const returnCodeStatus = (orders, contributionCount) => {
   );
 };
 
-export const getCustomerCodes = async (
+export const getShopifyDiscountCodes = async (
   shopifyCustomerID,
   contributionCount
 ) => {

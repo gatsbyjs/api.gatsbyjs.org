@@ -1,3 +1,4 @@
+import { ApolloError } from 'apollo-server-express';
 import {
   getContributorInfo,
   getOpenIssuesByLabel,
@@ -7,7 +8,7 @@ import {
 import { createShopifyCustomer as createShopifyCustomerRest } from '../lib/shopify';
 import {
   createShopifyCustomer,
-  getCustomerCodes
+  getShopifyDiscountCodes
 } from '../lib/shopify-graphql';
 import getLogger from '../lib/logger';
 import { prisma } from '../prisma-client';
@@ -26,27 +27,37 @@ export default {
       const [contributor, contributorInfo] = await Promise.all([
         prisma.contributor({ githubUsername }),
         getContributorInfo(githubUsername)
-      ]);
+      ]).catch(error => {
+        // @todo: more useful error logging
+        throw new ApolloError(error.message);
+      });
+
+      const githubInfo = {
+        githubUsername,
+        githubPullRequestCount: contributorInfo.totalContributions,
+        githubPullRequests: contributorInfo.pullRequests
+      };
 
       // no prisma record, return github info
       if (!contributor || !contributor.githubUsername) {
-        return {
-          githubUsername,
-          githubPullRequestCount: contributorInfo.totalContributions
-        };
+        return githubInfo;
       }
 
-      const shopifyCodes = await getCustomerCodes(
-        contributor.shopifyCustomerID,
-        contributorInfo.totalContributions
-      );
+      try {
+        const shopifyCodes = await getShopifyDiscountCodes(
+          contributor.shopifyCustomerID,
+          contributorInfo.totalContributions
+        );
 
-      // return existing prisma contributor and GH details
-      return {
-        ...contributor,
-        shopifyCodes,
-        githubPullRequestCount: contributorInfo.totalContributions
-      };
+        return {
+          ...githubInfo,
+          ...contributor,
+          shopifyCodes
+        };
+      } catch (error) {
+        // @todo: more useful error logging
+        throw new ApolloError(error.message);
+      }
     }
   },
   Mutation: {
@@ -61,7 +72,6 @@ export default {
       logger.verbose('requesting a discount code for @%s', githubUsername);
 
       try {
-        // TODO will need to return level
         const isContributor = await isGitHubContributor(githubUsername);
 
         logger.verbose(
@@ -75,11 +85,11 @@ export default {
           await inviteIfNecessary(githubUsername);
 
           // Create a Shopify customer to associate with the discount code.
-          await createShopifyCustomerRest({
-            username: githubUsername,
-            first_name: firstName,
+          await createShopifyCustomer({
+            githubUsername,
+            firstName,
             email,
-            subscribe
+            acceptsMarketing: subscribe
           });
         } else {
           errors.push(
@@ -96,21 +106,22 @@ export default {
       };
     },
 
-    createCustomer: async (_, { input }) => {
+    createContributor: async (_, { input }) => {
       const shopifyCustomerID = await createShopifyCustomer(input);
 
-      // @todo: error handling
-      const prismaRecord = await prisma.createContributor({
-        githubUsername: input.githubUsername,
-        email: input.email,
-        shopifyCustomerID
+      const [{ totalContributions }] = await Promise.all([
+        getContributorInfo(input.githubUsername),
+        prisma.createContributor({
+          githubUsername: input.githubUsername,
+          email: input.email,
+          shopifyCustomerID
+        })
+      ]).catch(error => {
+        // @todo: more useful error logging
+        throw new ApolloError(error.message);
       });
 
-      const { totalContributions } = await getContributorInfo(
-        input.githubUsername
-      );
-
-      const shopifyCodes = await getCustomerCodes(
+      const shopifyCodes = await getShopifyDiscountCodes(
         shopifyCustomerID,
         totalContributions
       );
