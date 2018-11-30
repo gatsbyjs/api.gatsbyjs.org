@@ -69,16 +69,20 @@ const returnCodeStatus = (orders, contributionCount) => {
     }
   ];
 
-  const earnedCodes = allContributorCodes
-    .filter(code => {
-      return contributionCount >= code.threshold;
-    })
-    .map(({ code }) => code);
+  const usedCodes = orders.map(({ node: { discountCode } }) => discountCode);
 
-  orders.map(({ node: { discountCode } }) => ({
-    code: discountCode,
-    used: earnedCodes.includes(discountCode)
-  }));
+  return (
+    allContributorCodes
+      // filter out codes that contributor has earned
+      .filter(code => {
+        return contributionCount >= code.threshold;
+      })
+      // return the (used/not used) status of earned codes
+      .map(({ code }) => ({
+        code,
+        used: usedCodes.includes(code)
+      }))
+  );
 };
 
 export const getCustomerCodes = async (

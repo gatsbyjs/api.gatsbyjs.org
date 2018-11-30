@@ -23,12 +23,12 @@ export default {
       return await getOpenIssuesByLabel(label);
     },
     getContributor: async (_, { githubUsername }) => {
-      // currently this works for an already-created user
       const [contributor, contributorInfo] = await Promise.all([
         prisma.contributor({ githubUsername }),
         getContributorInfo(githubUsername)
       ]);
 
+      // no prisma record, return github info
       if (!contributor || !contributor.githubUsername) {
         return {
           githubUsername,
@@ -36,18 +36,15 @@ export default {
         };
       }
 
-      const orders = await getCustomerCodes(
+      const shopifyCodes = await getCustomerCodes(
         contributor.shopifyCustomerID,
         contributorInfo.totalContributions
       );
 
-      console.log(
-        'orders',
-        JSON.stringify(orders.data.data.customer.orders.edges)
-      );
-
+      // return existing prisma contributor and GH details
       return {
         ...contributor,
+        shopifyCodes,
         githubPullRequestCount: contributorInfo.totalContributions
       };
     }
@@ -102,8 +99,6 @@ export default {
     createCustomer: async (_, { input }) => {
       const shopifyCustomerID = await createShopifyCustomer(input);
 
-      console.log('shopifyCustomerID:', shopifyCustomerID);
-
       // @todo: error handling
       const prismaRecord = await prisma.createContributor({
         githubUsername: input.githubUsername,
@@ -111,20 +106,21 @@ export default {
         shopifyCustomerID
       });
 
-      console.log('prismaRecord', prismaRecord);
-
       const { totalContributions } = await getContributorInfo(
         input.githubUsername
       );
 
-      console.log('totalContributions', totalContributions);
+      const shopifyCodes = await getCustomerCodes(
+        shopifyCustomerID,
+        totalContributions
+      );
 
       return {
         githubUsername: input.githubUsername,
         email: input.email,
         githubPullRequestCount: totalContributions,
         shopifyCustomerID,
-        shopifyCodes: [{ code: 'test', used: false }]
+        shopifyCodes
       };
     }
   }
