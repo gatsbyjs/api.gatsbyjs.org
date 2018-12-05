@@ -13,6 +13,8 @@ type Query {
 }
 
 type Mutation {
+  # updateContributor(id, tags): Contributor
+
   """
   Creates a discount code for the given contributor.
   """
@@ -31,6 +33,8 @@ type Mutation {
   ): DiscountCode! @deprecated(reason: "use createContributor instead")
 
   createContributor(input: CreateContributorInput): Contributor
+
+  addTagsToShopifyCustomer(id: String!, tags: [String!]!): Boolean!
 }
 
 input CreateContributorInput {
@@ -41,12 +45,23 @@ input CreateContributorInput {
 }
 
 type Contributor {
-  githubUsername: ID! # this can be stored
-  email: ID # this can be stored
-  githubPullRequestCount: Int # pull from GitHub every time
-  githubPullRequests: [GitHubIssue] # pull from GitHub
-  shopifyCustomerID: ID # can be stored
-  shopifyCodes: [ShopifyDiscountCode] # pull from Shopify
+  githubUsername: ID!
+  email: ID
+  github: GitHubInfo
+  shopify: ShopifyInfo
+}
+
+type GitHubInfo {
+  username: ID
+  contributionCount: Int!
+  pullRequests: [GitHubIssue]
+}
+
+type ShopifyInfo {
+  id: ID!
+  tags: [String]
+  codes: [ShopifyDiscountCode]
+  newTags: [String]
 }
 
 type ShopifyDiscountCode {

@@ -8,7 +8,10 @@ import {
 import { createShopifyCustomer as createShopifyCustomerRest } from '../lib/shopify';
 import {
   createShopifyCustomer,
-  getShopifyDiscountCodes
+  getShopifyDiscountCodes,
+  getShopifyCustomerTags,
+  getMissingTags,
+  addTagsToCustomer
 } from '../lib/shopify-graphql';
 import getLogger from '../lib/logger';
 import { prisma } from '../prisma-client';
@@ -24,35 +27,28 @@ export default {
       return await getOpenIssuesByLabel(label);
     },
     getContributor: async (_, { githubUsername }) => {
-      const [contributor, contributorInfo] = await Promise.all([
-        prisma.contributor({ githubUsername }),
-        getContributorInfo(githubUsername)
-      ]).catch(error => {
-        // @todo: more useful error logging
-        throw new ApolloError(error.message);
-      });
-
-      const githubInfo = {
-        githubUsername,
-        githubPullRequestCount: contributorInfo.totalContributions,
-        githubPullRequests: contributorInfo.pullRequests
-      };
-
-      // no prisma record, return github info
-      if (!contributor || !contributor.githubUsername) {
-        return githubInfo;
-      }
-
       try {
-        const shopifyCodes = await getShopifyDiscountCodes(
-          contributor.shopifyCustomerID,
-          contributorInfo.totalContributions
-        );
+        const [contributor, githubInfo] = await Promise.all([
+          prisma.contributor({ githubUsername }),
+          getContributorInfo(githubUsername)
+        ]);
+
+        const github = {
+          username: githubUsername,
+          contributionCount: githubInfo.totalContributions,
+          pullRequests: githubInfo.pullRequests
+        };
+
+        if (!contributor || !contributor.githubUsername) {
+          return {
+            githubUsername,
+            github
+          };
+        }
 
         return {
-          ...githubInfo,
           ...contributor,
-          shopifyCodes
+          github
         };
       } catch (error) {
         // @todo: more useful error logging
@@ -133,6 +129,50 @@ export default {
         shopifyCustomerID,
         shopifyCodes
       };
+    },
+    addTagsToShopifyCustomer: async (_, { id, tags }) => {
+      return await addTagsToCustomer(id, tags);
+    }
+  },
+  Contributor: {
+    shopify: async data => {
+      if (!data || !data.shopifyCustomerID) {
+        return null;
+      }
+
+      return {
+        id: data.shopifyCustomerID,
+        needsUpdate: false,
+
+        // Passed through to child resolver at `ShopifyInfo.codes`
+        count: data.github.contributionCount
+      };
+    }
+  },
+  ShopifyInfo: {
+    codes: async data => {
+      try {
+        return await getShopifyDiscountCodes(data.id, data.count);
+      } catch (error) {
+        // @todo: more useful error logging
+        throw new ApolloError(error.message);
+      }
+    },
+    tags: async data => {
+      try {
+        return await getShopifyCustomerTags(data.id);
+      } catch (error) {
+        // @todo: more useful error logging
+        throw new ApolloError(error.message);
+      }
+    },
+    newTags: async data => {
+      try {
+        return await getMissingTags(data.id, data.count);
+      } catch (error) {
+        // @todo: more useful error logging
+        throw new ApolloError(error.message);
+      }
     }
   }
 };
