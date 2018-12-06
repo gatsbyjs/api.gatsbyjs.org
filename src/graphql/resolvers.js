@@ -5,11 +5,10 @@ import {
   isGitHubContributor,
   inviteIfNecessary
 } from '../lib/github';
-import { createShopifyCustomer as createShopifyCustomerRest } from '../lib/shopify';
 import {
   createShopifyCustomer,
   getShopifyDiscountCodes,
-  getShopifyCustomerTags,
+  getShopifyCustomer,
   getMissingTags,
   addTagsToCustomer
 } from '../lib/shopify-graphql';
@@ -105,7 +104,9 @@ export default {
     createContributor: async (_, { input }) => {
       const shopifyCustomerID = await createShopifyCustomer(input);
 
-      const [{ totalContributions }] = await Promise.all([
+      const [
+        { totalContributions: contributionCount, pullRequests }
+      ] = await Promise.all([
         getContributorInfo(input.githubUsername),
         prisma.createContributor({
           githubUsername: input.githubUsername,
@@ -117,17 +118,15 @@ export default {
         throw new ApolloError(error.message);
       });
 
-      const shopifyCodes = await getShopifyDiscountCodes(
-        shopifyCustomerID,
-        totalContributions
-      );
-
       return {
         githubUsername: input.githubUsername,
         email: input.email,
-        githubPullRequestCount: totalContributions,
         shopifyCustomerID,
-        shopifyCodes
+        github: {
+          username: input.githubUsername,
+          contributionCount,
+          pullRequests
+        }
       };
     },
     addTagsToShopifyCustomer: async (_, { id, tags }) => {
@@ -142,8 +141,6 @@ export default {
 
       return {
         id: data.shopifyCustomerID,
-        needsUpdate: false,
-
         // Passed through to child resolver at `ShopifyInfo.codes`
         count: data.github.contributionCount
       };
@@ -160,7 +157,8 @@ export default {
     },
     tags: async data => {
       try {
-        return await getShopifyCustomerTags(data.id);
+        const customer = await getShopifyCustomer(data.id);
+        return customer.tags;
       } catch (error) {
         // @todo: more useful error logging
         throw new ApolloError(error.message);
