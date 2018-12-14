@@ -11,7 +11,7 @@ import {
   getShopifyCustomer,
   getMissingTags,
   addTagsToCustomer
-} from '../lib/shopify-graphql';
+} from '../lib/shopify';
 import getLogger from '../lib/logger';
 import { prisma } from '../prisma-client';
 
