@@ -22,6 +22,17 @@ const SHOPIFY_DISCOUNT_CODES = [
   }
 ];
 
+const fetchGraphQL = query =>
+  axios({
+    method: 'post',
+    url: `https://${process.env.SHOPIFY_URI}/admin/api/graphql.json`,
+    headers: {
+      'Content-Type': 'application/graphql',
+      'X-Shopify-Access-Token': process.env.SHOPIFY_GRAPHQL_TOKEN
+    },
+    data: query
+  });
+
 export const createShopifyCustomer = async ({
   githubUsername,
   email,
@@ -31,27 +42,6 @@ export const createShopifyCustomer = async ({
   const { totalContributions } = await getContributorInfo(githubUsername);
   const tags = getEarnedCodes(totalContributions).map(({ tag }) => tag);
 
-  // doesnt work when a customer already exists
-  // need to get ID and add to prisma
-  const mutation = `
-    mutation {
-      customerCreate(input: {
-        acceptsMarketing: ${acceptsMarketing}
-        firstName: "${firstName}"
-        email: "${email}"
-        tags: ${JSON.stringify(tags)}
-      }) {
-        customer {
-          id
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }
-  `;
-
   // TODO do we get error messages back from Shopify?
   // TODO how do we look up a customer by email?
   try {
@@ -59,15 +49,26 @@ export const createShopifyCustomer = async ({
       data: {
         data: { customerCreate: response }
       }
-    } = await axios({
-      method: 'post',
-      url: `https://${process.env.SHOPIFY_URI}/admin/api/graphql.json`,
-      headers: {
-        'Content-Type': 'application/graphql',
-        'X-Shopify-Access-Token': process.env.SHOPIFY_GRAPHQL_TOKEN
-      },
-      data: mutation
-    });
+    } = await fetchGraphQL(
+      `
+        mutation {
+          customerCreate(input: {
+            acceptsMarketing: ${acceptsMarketing}
+            firstName: "${firstName}"
+            email: "${email}"
+            tags: ${JSON.stringify(tags)}
+          }) {
+            customer {
+              id
+            }
+            userErrors {
+              field
+              message
+            }
+          }
+        }
+      `
+    );
 
     if (response.userErrors.length > 0) {
       throw new Error(response.userErrors[0].message);
@@ -80,29 +81,21 @@ export const createShopifyCustomer = async ({
 };
 
 export const addTagsToCustomer = async (shopifyCustomerID, tags) => {
-  const mutation = `
-    mutation {
-      tagsAdd(id: "${shopifyCustomerID}", tags: ${JSON.stringify(tags)}) {
-        userErrors {
-          field
-          message
-        }
-        node {
-          id
+  const response = await fetchGraphQL(
+    `
+      mutation {
+        tagsAdd(id: "${shopifyCustomerID}", tags: ${JSON.stringify(tags)}) {
+          userErrors {
+            field
+            message
+          }
+          node {
+            id
+          }
         }
       }
-    }
-  `;
-
-  const response = await axios({
-    method: 'post',
-    url: `https://${process.env.SHOPIFY_URI}/admin/api/graphql.json`,
-    headers: {
-      'Content-Type': 'application/graphql',
-      'X-Shopify-Access-Token': process.env.SHOPIFY_GRAPHQL_TOKEN
-    },
-    data: mutation
-  });
+    `
+  );
 
   const hasErrors = response.data.data.tagsAdd.userErrors.length > 0;
 
@@ -115,15 +108,9 @@ export const addTagsToCustomer = async (shopifyCustomerID, tags) => {
 };
 
 export const getShopifyCustomer = async shopifyCustomerID => {
-  const result = await axios({
-    method: 'post',
-    url: `https://${process.env.SHOPIFY_URI}/admin/api/graphql.json`,
-    headers: {
-      'Content-Type': 'application/graphql',
-      'X-Shopify-Access-Token': process.env.SHOPIFY_GRAPHQL_TOKEN
-    },
-    data: `
-       {
+  const result = await fetchGraphQL(
+    `
+      {
         customer(id: "${shopifyCustomerID}") {
           tags
           orders(first: 100) {
@@ -136,7 +123,7 @@ export const getShopifyCustomer = async shopifyCustomerID => {
         }
       }
     `
-  });
+  );
 
   return {
     usedCodes: result.data.data.customer.orders.edges.map(
