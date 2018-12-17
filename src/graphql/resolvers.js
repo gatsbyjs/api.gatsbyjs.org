@@ -1,4 +1,5 @@
 import { ApolloError } from 'apollo-server-express';
+import { createContributor, getContributorByGitHubUsername } from '../lib/db';
 import {
   getContributorInfo,
   getOpenIssuesByLabel,
@@ -8,52 +9,20 @@ import {
 import {
   createShopifyCustomer,
   getShopifyDiscountCodes,
-  getShopifyCustomer,
-  getMissingTags,
+  getEarnedDiscountCodes,
   addTagsToCustomer
 } from '../lib/shopify';
 import getLogger from '../lib/logger';
-import { prisma } from '../prisma-client';
 
 const logger = getLogger('graphql/resolvers');
 
 export default {
   Query: {
-    contributorInformation: async (_, { githubUsername }) => {
-      return await getContributorInfo(githubUsername);
-    },
-    openIssues: async (_, { label }) => {
-      return await getOpenIssuesByLabel(label);
-    },
-    getContributor: async (_, { githubUsername }) => {
-      try {
-        const [contributor, githubInfo] = await Promise.all([
-          prisma.contributor({ githubUsername }),
-          getContributorInfo(githubUsername)
-        ]);
-
-        const github = {
-          username: githubUsername,
-          contributionCount: githubInfo.totalContributions,
-          pullRequests: githubInfo.pullRequests
-        };
-
-        if (!contributor || !contributor.githubUsername) {
-          return {
-            githubUsername,
-            github
-          };
-        }
-
-        return {
-          ...contributor,
-          github
-        };
-      } catch (error) {
-        // @todo: more useful error logging
-        throw new ApolloError(error.message);
-      }
-    }
+    contributorInformation: async (_, { githubUsername }) =>
+      await getContributorInfo(githubUsername),
+    openIssues: async (_, { label }) => await getOpenIssuesByLabel(label),
+    getContributor: async (_, { githubUsername }) =>
+      await getContributorByGitHubUsername(githubUsername)
   },
   Mutation: {
     discountCode: async (
@@ -101,36 +70,35 @@ export default {
       };
     },
 
-    createContributor: async (_, { input }) => {
-      const shopifyCustomerID = await createShopifyCustomer(input);
+    createContributor: async (_, { input }) => await createContributor(input),
+    updateContributorTags: async (_, { githubUsername }) => {
+      try {
+        // 1. Load the contributor’s info from the database.
+        const contributor = await getContributorByGitHubUsername(
+          githubUsername
+        );
 
-      const [
-        { totalContributions: contributionCount, pullRequests }
-      ] = await Promise.all([
-        getContributorInfo(input.githubUsername),
-        prisma.createContributor({
-          githubUsername: input.githubUsername,
-          email: input.email,
-          shopifyCustomerID
-        })
-      ]).catch(error => {
+        // If there’s no customer record or no contributions, return the data.
+        if (
+          !contributor.shopifyCustomerID ||
+          contributor.github.contributionCount < 1
+        ) {
+          return contributor;
+        }
+
+        // 2. Update the tags for the contributor so the discount codes work.
+        const tags = getEarnedDiscountCodes(
+          contributor.github.contributionCount
+        ).map(({ tag }) => tag);
+
+        // Await this because we want any errors to prevent returning.
+        await addTagsToCustomer(contributor.shopifyCustomerID, tags);
+
+        return contributor;
+      } catch (error) {
         // @todo: more useful error logging
         throw new ApolloError(error.message);
-      });
-
-      return {
-        githubUsername: input.githubUsername,
-        email: input.email,
-        shopifyCustomerID,
-        github: {
-          username: input.githubUsername,
-          contributionCount,
-          pullRequests
-        }
-      };
-    },
-    addTagsToShopifyCustomer: async (_, { id, tags }) => {
-      return await addTagsToCustomer(id, tags);
+      }
     }
   },
   Contributor: {
@@ -147,30 +115,6 @@ export default {
     }
   },
   ShopifyInfo: {
-    codes: async data => {
-      try {
-        return await getShopifyDiscountCodes(data.id, data.count);
-      } catch (error) {
-        // @todo: more useful error logging
-        throw new ApolloError(error.message);
-      }
-    },
-    tags: async data => {
-      try {
-        const customer = await getShopifyCustomer(data.id);
-        return customer.tags;
-      } catch (error) {
-        // @todo: more useful error logging
-        throw new ApolloError(error.message);
-      }
-    },
-    newTags: async data => {
-      try {
-        return await getMissingTags(data.id, data.count);
-      } catch (error) {
-        // @todo: more useful error logging
-        throw new ApolloError(error.message);
-      }
-    }
+    codes: async data => await getShopifyDiscountCodes(data.id, data.count)
   }
 };
