@@ -46,16 +46,16 @@ const getShopifyCustomerByEmail = async email => {
     }
   } = await fetchGraphQL(
     `
-        {
-          customers(query: "email:${email}" first: 1) {
-            edges {
-              node {
-                id
-              }
+      {
+        customers(query: "email:${email}" first: 1) {
+          edges {
+            node {
+              id
             }
           }
         }
-      `
+      }
+    `
   );
 
   return customers.edges.map(({ node }) => node).find(id => id);

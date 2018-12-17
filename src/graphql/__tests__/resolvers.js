@@ -76,6 +76,10 @@ const mockPrismaContributor = {
 };
 
 describe('graphql/resolvers', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Query', () => {
     describe('contributorInformation', () => {
       test('returns pull request information for a contributor', async () => {
@@ -280,8 +284,6 @@ describe('graphql/resolvers', () => {
       });
 
       test('fails gracefully to invite the user to GitHub if there’s a problem', async () => {
-        jest.clearAllMocks();
-
         axios
           .mockResolvedValueOnce(mockShopifyCustomerCreateSuccess)
           .mockResolvedValueOnce(mockShopifyAddTagsSuccess);
@@ -289,24 +291,6 @@ describe('graphql/resolvers', () => {
         gh.search.issues.mockResolvedValueOnce(mockGitHubIssueSearchResult);
         gh.orgs.getTeamMembership.mockRejectedValueOnce({
           code: 500,
-          message: 'Internal server error'
-        });
-
-        await resolvers.Mutation.createContributor(null, contributorInput);
-
-        expect(gh.orgs.addTeamMembership).not.toBeCalled();
-      });
-
-      test('fails gracefully to invite the user to GitHub if there’s a problem', async () => {
-        jest.clearAllMocks();
-
-        axios
-          .mockResolvedValueOnce(mockShopifyCustomerCreateSuccess)
-          .mockResolvedValueOnce(mockShopifyAddTagsSuccess);
-
-        gh.search.issues.mockResolvedValueOnce(mockGitHubIssueSearchResult);
-        gh.orgs.getTeamMembership.mockResolvedValueOnce({
-          status: 500,
           message: 'Internal server error'
         });
 
@@ -333,6 +317,63 @@ describe('graphql/resolvers', () => {
         }
       });
 
+      test('loads a customer if the email address is taken', async () => {
+        axios
+          .mockResolvedValueOnce({
+            data: {
+              data: {
+                customerCreate: {
+                  customer: null,
+                  userErrors: [
+                    { message: 'Error: Email has already been taken.' }
+                  ]
+                }
+              }
+            }
+          })
+          .mockResolvedValueOnce({
+            data: {
+              data: {
+                customers: {
+                  edges: [
+                    { node: { id: 'gid://shopify/Customer/1234567891234' } }
+                  ]
+                }
+              }
+            }
+          });
+
+        const result = await resolvers.Mutation.createContributor(
+          null,
+          contributorInput
+        );
+
+        expect(result.shopifyCustomerID).toBe(
+          'gid://shopify/Customer/1234567891234'
+        );
+      });
+
+      test('passes through unknown customer creation errors', async () => {
+        expect.assertions(1);
+
+        axios.mockResolvedValueOnce({
+          data: {
+            data: {
+              customerCreate: {
+                customer: null,
+                userErrors: [{ message: 'Error: Some other error.' }]
+              }
+            }
+          }
+        });
+
+        try {
+          await resolvers.Mutation.createContributor(null, contributorInput);
+        } catch (error) {
+          expect(error.message).toBe('Error: Some other error.');
+        }
+      });
+
       test('passes the error message through if an unknown error occurs', async () => {
         expect.assertions(1);
 
@@ -352,7 +393,6 @@ describe('graphql/resolvers', () => {
 
     describe('updateContributorTags', () => {
       test('adds the appropriate tags for a first-level contributor', async () => {
-        jest.clearAllMocks();
         prisma.contributor.mockResolvedValueOnce(mockPrismaContributor);
         gh.search.issues.mockResolvedValueOnce(mockGitHubIssueSearchResult);
         axios.mockResolvedValueOnce(mockShopifyAddTagsSuccess);
@@ -367,7 +407,6 @@ describe('graphql/resolvers', () => {
       });
 
       test('adds the appropriate tags for a second-level contributor', async () => {
-        jest.clearAllMocks();
         prisma.contributor.mockResolvedValueOnce(mockPrismaContributor);
         gh.search.issues.mockResolvedValueOnce({
           data: {
@@ -387,7 +426,6 @@ describe('graphql/resolvers', () => {
       });
 
       test('adds no tags if the contributor record doesn’t exist', async () => {
-        jest.clearAllMocks();
         prisma.contributor.mockResolvedValueOnce(null);
         gh.search.issues.mockResolvedValueOnce(mockGitHubIssueSearchResult);
 
@@ -399,7 +437,6 @@ describe('graphql/resolvers', () => {
       });
 
       test('adds no tags if the contributor has no contributions', async () => {
-        jest.clearAllMocks();
         prisma.contributor.mockResolvedValueOnce(mockPrismaContributor);
         gh.search.issues.mockResolvedValueOnce({
           data: {
@@ -417,7 +454,6 @@ describe('graphql/resolvers', () => {
 
       test('passes through error messages if something goes wrong', async () => {
         expect.assertions(1);
-        jest.clearAllMocks();
 
         gh.search.issues.mockImplementationOnce(() => {
           throw new Error('Something went wrong.');

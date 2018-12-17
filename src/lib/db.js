@@ -128,6 +128,7 @@ export const createContributor = async input => {
 
   logger.verbose(`New contributor record created`);
 
+  // istanbul ignore else — nothing happens in the else, so no need to test
   if (contributionCount > 0) {
     /*
      * 3. Add tags to the Shopify customer and invite them to GitHub.
