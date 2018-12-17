@@ -1,10 +1,11 @@
+import mem from 'mem';
 import { ApolloError } from 'apollo-server-express';
 import axios from 'axios';
-import { getContributorInfo } from './github';
+import getLogger from './logger';
+
+const logger = getLogger('lib/shopify');
 
 /*
- * @todo: handle the case where a Shopify customer already exists and we try to create one (lookup and associate existing user with prisma account)
- * @todo: use email address associated with user's github account (account for this in UI also)
  * @todo: add tests
  */
 
@@ -22,6 +23,11 @@ const SHOPIFY_DISCOUNT_CODES = [
   }
 ];
 
+/**
+ * Executes a GraphQL query against the Shopify API.
+ * @param {string} query - a GraphQL query or mutation
+ * @return {Promise} a Promise containing the result and/or errors
+ */
 const fetchGraphQL = query =>
   axios({
     method: 'post',
@@ -33,17 +39,77 @@ const fetchGraphQL = query =>
     data: query
   });
 
+const getShopifyCustomerByEmail = async email => {
+  const {
+    data: {
+      data: { customers }
+    }
+  } = await fetchGraphQL(
+    `
+        {
+          customers(query: "email:${email}" first: 1) {
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+      `
+  );
+
+  return customers.edges.map(({ node }) => node).find(id => id);
+};
+
+/** @typedef {{ usedCodes: string[], tags: string[] }} CustomerData */
+/** @typedef {(id: string) => CustomerData} ShopifyCustomer */
+
+/**
+ * Loads a given Shopify customer record by its ID.
+ *
+ * NOTE: This call is memoized (using `mem`) for 3 seconds to prevent wasted
+ * requests since several parts of the Shopify resolver chain call this.
+ *
+ * @type ShopifyCustomer
+ */
+const getShopifyCustomer = mem(
+  async id => {
+    logger.verbose(`loading Shopify customer data...`);
+
+    const result = await fetchGraphQL(
+      `
+        {
+          customer(id: "${id}") {
+            tags
+            orders(first: 100) {
+              edges {
+                node {
+                  discountCode
+                }
+              }
+            }
+          }
+        }
+      `
+    );
+
+    logger.verbose(`Shopify customer data loaded!`);
+
+    return {
+      usedCodes: result.data.data.customer.orders.edges.map(
+        ({ node: { discountCode } }) => discountCode
+      ),
+      tags: result.data.data.customer.tags
+    };
+  },
+  { maxAge: 3000 }
+);
+
 export const createShopifyCustomer = async ({
-  githubUsername,
   email,
   firstName,
   acceptsMarketing
 }) => {
-  const { totalContributions } = await getContributorInfo(githubUsername);
-  const tags = getEarnedCodes(totalContributions).map(({ tag }) => tag);
-
-  // TODO do we get error messages back from Shopify?
-  // TODO how do we look up a customer by email?
   try {
     const {
       data: {
@@ -56,7 +122,6 @@ export const createShopifyCustomer = async ({
             acceptsMarketing: ${acceptsMarketing}
             firstName: "${firstName}"
             email: "${email}"
-            tags: ${JSON.stringify(tags)}
           }) {
             customer {
               id
@@ -71,7 +136,22 @@ export const createShopifyCustomer = async ({
     );
 
     if (response.userErrors.length > 0) {
-      throw new Error(response.userErrors[0].message);
+      // Hard-coding error messages feels gross but I don’t have a better idea.
+      const isDuplicate = response.userErrors.find(err =>
+        err.message.match(/Email has already been taken/)
+      );
+
+      if (isDuplicate) {
+        logger.verbose(`A customer with the email ${email} already exists.`);
+
+        // If the email is already taken, we load the existing customer data.
+        const customer = await getShopifyCustomerByEmail(email);
+
+        return customer.id;
+      } else {
+        logger.error(response.userErrors.map(({ message }) => message));
+        throw new Error(response.userErrors[0].message);
+      }
     }
 
     return response.customer.id;
@@ -97,73 +177,30 @@ export const addTagsToCustomer = async (shopifyCustomerID, tags) => {
     `
   );
 
-  const hasErrors = response.data.data.tagsAdd.userErrors.length > 0;
+  const errors = response.data.data.tagsAdd.userErrors;
 
-  if (response.errors || hasErrors) {
-    // @todo: more useful error logging
-    throw new ApolloError(error.message);
+  if (response.errors || errors.length > 0) {
+    const allErrors = [].concat(
+      response.errors.map(({ message }) => message),
+      errors.map(({ message }) => message)
+    );
+
+    logger.error(allErrors);
+
+    throw new ApolloError(allErrors[0]);
   }
 
-  return !hasErrors;
+  logger.verbose(`Added new tags: ${tags.join(', ')}`);
 };
 
-export const getShopifyCustomer = async shopifyCustomerID => {
-  const result = await fetchGraphQL(
-    `
-      {
-        customer(id: "${shopifyCustomerID}") {
-          tags
-          orders(first: 100) {
-            edges {
-              node {
-                discountCode
-              }
-            }
-          }
-        }
-      }
-    `
-  );
+export const getEarnedDiscountCodes = contributionCount =>
+  SHOPIFY_DISCOUNT_CODES.filter(code => contributionCount >= code.threshold);
 
-  return {
-    usedCodes: result.data.data.customer.orders.edges.map(
-      ({ node: { discountCode } }) => discountCode
-    ),
-    tags: result.data.data.customer.tags
-  };
-};
-
-// gets earned codes by contribution count (external to user account)
-const getEarnedCodes = contributionCount =>
-  SHOPIFY_DISCOUNT_CODES
-    // filter out codes that contributor has earned
-    .filter(code => {
-      return contributionCount >= code.threshold;
-    });
-
-const getEarnedCodesStatus = (contributionCount, usedCodes) => {
-  const earnedCodes = getEarnedCodes(contributionCount);
-  return earnedCodes.map(({ code }) => ({
+const getDiscountCodesWithStatus = (contributionCount, usedCodes) =>
+  getEarnedDiscountCodes(contributionCount).map(({ code }) => ({
     code,
     used: usedCodes.includes(code)
   }));
-};
-
-// for existing shopify customer
-export const getMissingTags = async (shopifyCustomerID, contributionCount) => {
-  const { tags, usedCodes } = await getShopifyCustomer(shopifyCustomerID);
-  const earnedCodesStatus = getEarnedCodesStatus(contributionCount, usedCodes);
-  const newTags = earnedCodesStatus
-    .map(obj => {
-      const codeInfo = SHOPIFY_DISCOUNT_CODES.find(
-        discount => discount.code === obj.code
-      );
-      return !tags.includes(codeInfo.tag) ? codeInfo.tag : false;
-    })
-    .filter(Boolean);
-
-  return newTags;
-};
 
 export const getShopifyDiscountCodes = async (
   shopifyCustomerID,
@@ -172,5 +209,5 @@ export const getShopifyDiscountCodes = async (
   const customer = await getShopifyCustomer(shopifyCustomerID);
 
   // @todo: error handling
-  return getEarnedCodesStatus(contributionCount, customer.usedCodes);
+  return getDiscountCodesWithStatus(contributionCount, customer.usedCodes);
 };
