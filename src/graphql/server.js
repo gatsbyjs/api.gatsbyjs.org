@@ -59,5 +59,10 @@ server.applyMiddleware({ app, cors: true });
 const handler = serverless(app);
 
 export const graphql = async (event, context) => {
+  // Prevents Lambda cold starts
+  if (event.source === 'serverless-plugin-warmup') {
+    return 'Lambda is warm!';
+  }
+
   return await handler(event, context);
 };
