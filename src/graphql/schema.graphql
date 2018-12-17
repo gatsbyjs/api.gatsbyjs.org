@@ -34,7 +34,7 @@ type Mutation {
 
   createContributor(input: CreateContributorInput): Contributor
 
-  addTagsToShopifyCustomer(id: String!, tags: [String!]!): Boolean!
+  updateContributorTags(githubUsername: String!): Contributor
 }
 
 input CreateContributorInput {
@@ -59,9 +59,7 @@ type GitHubInfo {
 
 type ShopifyInfo {
   id: ID!
-  tags: [String]
   codes: [ShopifyDiscountCode]
-  newTags: [String]
 }
 
 type ShopifyDiscountCode {
