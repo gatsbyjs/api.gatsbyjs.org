@@ -1,0 +1,6 @@
+type Contributor {
+  id: ID! @unique
+  email: String @unique
+  githubUsername: String! @unique
+  shopifyCustomerID: String @unique
+}

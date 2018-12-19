@@ -1,11 +1,10 @@
 import Octokit from '@octokit/rest';
 import getLogger from './logger';
 
+const { GITHUB_ORG, GITHUB_TOKEN, GITHUB_TEAM_ID } = process.env;
+
 const logger = getLogger('lib/github');
 const github = new Octokit();
-const GITHUB_ORG = process.env.GITHUB_ORG;
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_TEAM_ID = process.env.GITHUB_TEAM_ID;
 
 export const getContributorInfo = async username => {
   logger.verbose('loading merged PRs from @%s', username);
@@ -65,7 +64,7 @@ export const inviteIfNecessary = async username => {
 
     if (response.status !== 200) {
       logger.error('The status code returned was %d', response.status);
-      throw new Error(response);
+      throw new Error('There was a problem sending data to GitHub’s API.');
     }
 
     logger.verbose('@%s has already been invited to this team', username);
@@ -73,13 +72,7 @@ export const inviteIfNecessary = async username => {
   } catch (err) {
     // If the user hasn’t been invited, Octokit throws with a 404.
     if (err.code === 404) {
-      const invite = await github.orgs.addTeamMembership(options);
-
-      if (invite.data.state === 'active') {
-        logger.verbose('@%s is already a member of this team', username);
-      } else {
-        logger.verbose('@%s was invited to join the team', username);
-      }
+      await github.orgs.addTeamMembership(options);
 
       return true;
     }

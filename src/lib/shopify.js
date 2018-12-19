@@ -1,104 +1,213 @@
-import { get, post, put } from './request';
+import mem from 'mem';
+import { ApolloError } from 'apollo-server-express';
+import axios from 'axios';
 import getLogger from './logger';
 
 const logger = getLogger('lib/shopify');
 
-const getShopifyEndpoint = endpoint => {
-  const key = process.env.SHOPIFY_API_KEY;
-  const secret = process.env.SHOPIFY_API_SECRET;
-  const domain = process.env.SHOPIFY_URI;
+/*
+ * @todo: add tests
+ */
 
-  return `https://${key}:${secret}@${domain}${endpoint}`;
-};
-
-export const addContributorTagToCustomer = async customer => {
-  const tags = customer.tags.split(',');
-
-  if (tags.includes('contributor')) {
-    return true;
+const SHOPIFY_DISCOUNT_CODES = [
+  {
+    code: 'BUILDWITHGATSBY',
+    // rename this shizz
+    threshold: 1,
+    tag: 'contributor'
+  },
+  {
+    code: 'LEVEL2',
+    threshold: 5,
+    tag: 'level2'
   }
+];
 
-  const nextTags = ['contributor', ...tags].join();
-  const uri = getShopifyEndpoint(`/admin/customers/${customer.id}.json`);
-  const payload = { customer: { id: customer.id, tags: nextTags } };
-
-  const response = await put(uri, payload);
-
-  if (response.status !== 200) {
-    throw new Error('Unable to add the “contributor” tag to the customer');
-  }
-
-  logger.verbose(
-    'The “contributor” tag was added to the customer %s',
-    payload.customer.email
-  );
-
-  return true;
-};
-
-export const getCustomerByEmail = async email => {
-  const endpoint = `/admin/customers/search.json`;
-  const uri = getShopifyEndpoint(endpoint);
-
-  const { data: { customers = [] } = {} } = await get(uri, { query: email });
-
-  if (!customers[0]) {
-    throw new Error(`No customer found with the email ${email}`);
-  }
-
-  return customers[0];
-};
-
-export const createCustomer = async payload => {
-  try {
-    const uri = getShopifyEndpoint('/admin/customers.json');
-    const response = await post(uri, payload);
-
-    if (response.status !== 201) {
-      throw new Error(response.statusText);
-    }
-
-    logger.verbose(
-      '%s was added as a customer in Shopify',
-      payload.customer.email
-    );
-    return true;
-  } catch (e) {
-    /*
-     * If the attempt to create the customer fails, it means the customer
-     * already exists, so we need to load the existing customer.
-     */
-    const customer = await getCustomerByEmail(payload.customer.email);
-
-    // Ensure the customer has the `contributor` tag so the discount works.
-    await addContributorTagToCustomer(customer);
-
-    return true;
-  }
-};
-
-export const createShopifyCustomer = async ({
-  username,
-  email,
-  first_name,
-  subscribe
-}) => {
-  const response = await createCustomer({
-    customer: {
-      first_name,
-      email,
-      accepts_marketing: subscribe,
-      tags: 'contributor',
-      metafields: [
-        {
-          key: 'github',
-          value: username,
-          namespace: 'global',
-          value_type: 'string'
-        }
-      ]
-    }
+/**
+ * Executes a GraphQL query against the Shopify API.
+ * @param {string} query - a GraphQL query or mutation
+ * @return {Promise} a Promise containing the result and/or errors
+ */
+const fetchGraphQL = query =>
+  axios({
+    method: 'post',
+    url: `https://${process.env.SHOPIFY_URI}/admin/api/graphql.json`,
+    headers: {
+      'Content-Type': 'application/graphql',
+      'X-Shopify-Access-Token': process.env.SHOPIFY_GRAPHQL_TOKEN
+    },
+    data: query
   });
 
-  return response;
+const getShopifyCustomerByEmail = async email => {
+  const {
+    data: {
+      data: { customers }
+    }
+  } = await fetchGraphQL(
+    `
+      {
+        customers(query: "email:${email}" first: 1) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    `
+  );
+
+  return customers.edges.map(({ node }) => node).find(id => id);
+};
+
+/** @typedef {{ usedCodes: string[], tags: string[] }} CustomerData */
+/** @typedef {(id: string) => CustomerData} ShopifyCustomer */
+
+/**
+ * Loads a given Shopify customer record by its ID.
+ *
+ * NOTE: This call is memoized (using `mem`) for 3 seconds to prevent wasted
+ * requests since several parts of the Shopify resolver chain call this.
+ *
+ * @type ShopifyCustomer
+ */
+const getShopifyCustomer = mem(
+  async id => {
+    logger.verbose(`loading Shopify customer data...`);
+
+    const result = await fetchGraphQL(
+      `
+        {
+          customer(id: "${id}") {
+            tags
+            orders(first: 100) {
+              edges {
+                node {
+                  discountCode
+                }
+              }
+            }
+          }
+        }
+      `
+    );
+
+    logger.verbose(`Shopify customer data loaded!`);
+
+    return {
+      usedCodes: result.data.data.customer.orders.edges.map(
+        ({ node: { discountCode } }) => discountCode
+      ),
+      tags: result.data.data.customer.tags
+    };
+  },
+  { maxAge: 3000 }
+);
+
+export const createShopifyCustomer = async ({
+  email,
+  firstName,
+  acceptsMarketing
+}) => {
+  try {
+    const {
+      data: {
+        data: { customerCreate: response }
+      }
+    } = await fetchGraphQL(
+      `
+        mutation {
+          customerCreate(input: {
+            acceptsMarketing: ${acceptsMarketing}
+            firstName: "${firstName}"
+            email: "${email}"
+          }) {
+            customer {
+              id
+            }
+            userErrors {
+              field
+              message
+            }
+          }
+        }
+      `
+    );
+
+    if (response.userErrors.length > 0) {
+      // Hard-coding error messages feels gross but I don’t have a better idea.
+      const isDuplicate = response.userErrors.find(err =>
+        err.message.match(/Email has already been taken/)
+      );
+
+      if (isDuplicate) {
+        logger.verbose(`A customer with the email ${email} already exists.`);
+
+        // If the email is already taken, we load the existing customer data.
+        const customer = await getShopifyCustomerByEmail(email);
+
+        return customer.id;
+      } else {
+        logger.error(response.userErrors.map(({ message }) => message));
+        throw new Error(response.userErrors[0].message);
+      }
+    }
+
+    return response.customer.id;
+  } catch (error) {
+    throw new ApolloError(error.message);
+  }
+};
+
+export const addTagsToCustomer = async (shopifyCustomerID, tags) => {
+  const response = await fetchGraphQL(
+    `
+      mutation {
+        tagsAdd(id: "${shopifyCustomerID}", tags: ${JSON.stringify(tags)}) {
+          userErrors {
+            field
+            message
+          }
+          node {
+            id
+          }
+        }
+      }
+    `
+  );
+
+  const errors = response.data.data.tagsAdd.userErrors;
+
+  if (response.errors || errors.length > 0) {
+    const allErrors = [].concat(
+      response.errors.map(({ message }) => message),
+      errors.map(({ message }) => message)
+    );
+
+    logger.error(allErrors);
+
+    throw new ApolloError(allErrors[0]);
+  }
+
+  logger.verbose(`Added new tags: ${tags.join(', ')}`);
+};
+
+export const getEarnedDiscountCodes = contributionCount =>
+  SHOPIFY_DISCOUNT_CODES.filter(code => contributionCount >= code.threshold);
+
+const getDiscountCodesWithStatus = (contributionCount, usedCodes) =>
+  getEarnedDiscountCodes(contributionCount).map(({ code }) => ({
+    code,
+    used: usedCodes.includes(code)
+  }));
+
+export const getShopifyDiscountCodes = async (
+  shopifyCustomerID,
+  contributionCount
+) => {
+  const customer = await getShopifyCustomer(shopifyCustomerID);
+
+  // @todo: error handling
+  return getDiscountCodesWithStatus(contributionCount, customer.usedCodes);
 };

@@ -22,6 +22,8 @@
     "graphql-playground-middleware-express": "^1.7.6",
     "graphql-tag": "^2.10.0",
     "jwks-rsa": "^1.2.1",
+    "mem": "^4.0.0",
+    "prisma-client-lib": "^1.20.7",
     "serverless-http": "^1.7.0",
     "winston": "^3.0.0"
   },

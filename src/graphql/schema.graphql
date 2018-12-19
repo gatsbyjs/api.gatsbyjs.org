@@ -5,12 +5,16 @@ type Query {
   contributorInformation(
     "The contributor’s GitHub username."
     githubUsername: String!
-  ): ContributorInformation!
+  ): ContributorInformation! @deprecated(reason: "use getContributor instead")
+
+  getContributor(githubUsername: ID!): Contributor
 
   openIssues(label: String!): OpenIssues!
 }
 
 type Mutation {
+  # updateContributor(id, tags): Contributor
+
   """
   Creates a discount code for the given contributor.
   """
@@ -26,7 +30,41 @@ type Mutation {
 
     "Whether or not the contributor wants to receive email updates."
     subscribe: Boolean!
-  ): DiscountCode!
+  ): DiscountCode! @deprecated(reason: "use createContributor instead")
+
+  createContributor(input: CreateContributorInput): Contributor
+
+  updateContributorTags(githubUsername: String!): Contributor
+}
+
+input CreateContributorInput {
+  githubUsername: String!
+  email: String!
+  firstName: String!
+  acceptsMarketing: Boolean!
+}
+
+type Contributor {
+  githubUsername: ID!
+  email: ID
+  github: GitHubInfo
+  shopify: ShopifyInfo
+}
+
+type GitHubInfo {
+  username: ID
+  contributionCount: Int!
+  pullRequests: [GitHubIssue]
+}
+
+type ShopifyInfo {
+  id: ID!
+  codes: [ShopifyDiscountCode]
+}
+
+type ShopifyDiscountCode {
+  code: String!
+  used: Boolean!
 }
 
 """
