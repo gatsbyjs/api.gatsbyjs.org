@@ -12,6 +12,6 @@ var models = [
 exports.Prisma = prisma_lib_1.makePrismaClientClass({
   typeDefs,
   models,
-  endpoint: `https://us1.prisma.sh/jason-lengstorf-418dad/api-gatsby-org/dev`
+  endpoint: `https://prisma.gatsbyjs.com`
 });
 exports.prisma = new exports.Prisma();

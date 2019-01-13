@@ -8,6 +8,7 @@ type BatchPayload {
 }
 
 type Contributor {
+  id: ID!
   email: String
   githubUsername: String!
   shopifyCustomerID: String
@@ -31,14 +32,14 @@ type ContributorEdge {
 }
 
 enum ContributorOrderByInput {
+  id_ASC
+  id_DESC
   email_ASC
   email_DESC
   githubUsername_ASC
   githubUsername_DESC
   shopifyCustomerID_ASC
   shopifyCustomerID_DESC
-  id_ASC
-  id_DESC
   createdAt_ASC
   createdAt_DESC
   updatedAt_ASC
@@ -46,6 +47,7 @@ enum ContributorOrderByInput {
 }
 
 type ContributorPreviousValues {
+  id: ID!
   email: String
   githubUsername: String!
   shopifyCustomerID: String
@@ -82,6 +84,20 @@ input ContributorUpdateManyMutationInput {
 }
 
 input ContributorWhereInput {
+  id: ID
+  id_not: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  id_lt: ID
+  id_lte: ID
+  id_gt: ID
+  id_gte: ID
+  id_contains: ID
+  id_not_contains: ID
+  id_starts_with: ID
+  id_not_starts_with: ID
+  id_ends_with: ID
+  id_not_ends_with: ID
   email: String
   email_not: String
   email_in: [String!]
@@ -130,6 +146,7 @@ input ContributorWhereInput {
 }
 
 input ContributorWhereUniqueInput {
+  id: ID
   email: String
   githubUsername: String
   shopifyCustomerID: String

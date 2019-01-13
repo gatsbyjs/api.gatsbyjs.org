@@ -12,6 +12,14 @@ For a full schema reference, see [the schema](./src/graphql/schema.graphql).
 
 ## Running This Repo Locally
 
+**NOTE:** This API requires a bunch of secret tokens to function properly. You’ll need to have your own tokens for:
+
+1. Auth0
+2. GitHub
+3. Shopify
+
+So be warned: running this is a bit involved.
+
 ### Step 1: Clone the API
 
 ```bash
@@ -64,7 +72,14 @@ Open http://localhost:3000/playground to use this API locally.
 
 #### How to Test This API Using cURL
 
-If you want to send straight-up `POST` requests so you can wear sunglasses indoors and pretend you’re a hacker, you can also send cURL requests like so:
+<p align="center">
+  <img 
+    src="https://media.giphy.com/media/Q2W4hziDOyzu0/giphy.gif"
+    alt="Crash Override from Hackers (the movie)."
+  />
+</p>
+
+If you want to send straight-up `POST` requests from the command line so you can wear sunglasses indoors like a haxxor, you can also send cURL requests like so:
 
 ```bash
 curl \

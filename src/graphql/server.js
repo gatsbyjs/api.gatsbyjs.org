@@ -22,6 +22,16 @@ const requireValidJWT = jwt({
 
 const app = express();
 
+// This is here so auth errors don’t get masked as CORS errors.
+app.use(function(_, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept'
+  );
+  next();
+});
+
 // Disable the GraphQL Playground in production; it doesn’t work well anyways.
 const playground =
   process.env.NODE_ENV === 'development'
