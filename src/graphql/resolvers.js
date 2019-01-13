@@ -49,12 +49,14 @@ export default {
           await inviteIfNecessary(githubUsername);
 
           // Create a Shopify customer to associate with the discount code.
-          await createShopifyCustomer({
+          const shopifyCustomerID = await createShopifyCustomer({
             githubUsername,
             firstName,
             email,
             acceptsMarketing: subscribe
           });
+
+          await addTagsToCustomer(shopifyCustomerID, ['contributor']);
         } else {
           errors.push(
             `@${githubUsername} isn’t a contributor to the ${org} org`
