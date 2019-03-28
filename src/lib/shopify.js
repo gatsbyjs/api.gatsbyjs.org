@@ -17,7 +17,7 @@ const SHOPIFY_DISCOUNT_CODES = [
     tag: 'contributor'
   },
   {
-    code: 'LEVEL2',
+    code: 'HOLYBUCKETS',
     threshold: 5,
     tag: 'level2'
   }
