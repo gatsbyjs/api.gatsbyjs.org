@@ -29,6 +29,14 @@ provider:
   region: us-west-2
 
 functions:
+  publicAPI:
+    handler: src/graphql/public.graphql
+    warmup: true
+    events:
+      - http:
+          path: public
+          method: post
+          cors: true
   graphql:
     handler: src/graphql/server.graphql
     warmup: true
@@ -41,5 +49,5 @@ functions:
     handler: src/graphql/server.graphql
     events:
       - http:
-          path: playground
+          path: graphql
           method: get

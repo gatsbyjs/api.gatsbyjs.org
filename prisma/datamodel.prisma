@@ -4,3 +4,10 @@ type Contributor {
   githubUsername: String! @unique
   shopifyCustomerID: String @unique
 }
+
+type Feedback {
+  id: ID! @unique
+  rating: Int!
+  comment: String
+  originUrl: String!
+}
