@@ -5,7 +5,19 @@ const logger = getLogger('graphql/public-resolvers');
 
 export default {
   Query: {
-    ping: () => 'pong'
+    ping: () => 'pong',
+    getFeedback: async () => {
+      const result = await prisma.feedbacks({
+        where: {
+          AND: {
+            originUrl_contains: 'gatsbyjs.org'
+          }
+        },
+        orderBy: 'originUrl_ASC'
+      });
+
+      return result;
+    }
   },
   Mutation: {
     submitFeedback: async (_, { input }) => {
@@ -22,5 +34,8 @@ export default {
 
       return 'success';
     }
+  },
+  Feedback: {
+    date: source => source.createdAt
   }
 };

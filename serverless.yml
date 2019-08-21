@@ -46,8 +46,8 @@ functions:
           method: post
           cors: true
   playground:
-    handler: src/graphql/server.graphql
+    handler: src/graphql/public.graphql
     events:
       - http:
-          path: graphql
+          path: public
           method: get
