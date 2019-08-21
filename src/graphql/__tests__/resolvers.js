@@ -516,7 +516,7 @@ describe('graphql/resolvers', () => {
 
         expect(result).toEqual([
           { code: 'BUILDWITHGATSBY', used: true },
-          { code: 'LEVEL2', used: false }
+          { code: 'HOLYBUCKETS', used: false }
         ]);
       });
     });
