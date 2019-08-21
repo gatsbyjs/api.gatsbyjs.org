@@ -2,6 +2,21 @@
 
 This is the GraphQL API that powers the Maintainer Dashboard for the [Gatsby Store](https://store.gatsbyjs.org). It handles calls to privileged services such as Shopify and MailChimp to avoid exposing API keys in a client-side app.
 
+## Production environment
+
+Services:
+- [AWS Lambda](https://aws.com/lambda) 
+- [Prisma Cloud](https://prisma.io/cloud)
+- [Shopify](https://shopify.com)
+
+API:
+- [GitHub](https://developer.github.com/v4/)
+
+Frameworks:
+- [ExpressJS](https://expressjs.com/)
+- [Prisma Client](https://www.prisma.io/client/client-typescript)
+- [Serverless Framework](https://serverless.com/)
+
 ## API Reference
 
 ### `/graphql`
