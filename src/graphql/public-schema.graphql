@@ -1,5 +1,13 @@
 type Query {
   ping: String!
+  getFeedback: [Feedback!]!
+}
+
+type Feedback {
+  rating: Int!
+  comment: String
+  originUrl: String!
+  date: String!
 }
 
 type Mutation {
