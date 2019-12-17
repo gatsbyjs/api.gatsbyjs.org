@@ -25,7 +25,8 @@ export default {
       const result = await prisma.createFeedback({
         comment: input.comment,
         rating: input.rating,
-        originUrl: input.originUrl
+        originUrl: input.originUrl,
+        status: `OPEN`
       });
 
       if (!result.id) {
@@ -33,6 +34,26 @@ export default {
       }
 
       return 'success';
+    },
+    updateFeedback: async (_, { input }) => {
+      logger.info(
+        `Feedback updated to ${input.status} for feedback with ID: ${input.id}`
+      );
+      const updatedFeedback = await prisma.updateFeedback({
+        data: {
+          status: input.status
+        },
+        where: {
+          id: input.id
+        }
+      });
+
+      logger.info(updatedFeedback);
+      if (!updatedFeedback.id) {
+        return 'error';
+      }
+
+      return updatedFeedback;
     }
   },
   Feedback: {

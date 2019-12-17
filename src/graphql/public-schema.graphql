@@ -4,10 +4,12 @@ type Query {
 }
 
 type Feedback {
+  id: ID!
   rating: Int!
   comment: String
   originUrl: String!
   date: String!
+  status: FeedbackStatus
 }
 
 type Mutation {
@@ -15,10 +17,23 @@ type Mutation {
   A public endpoint used to submit anonymous feedback for the docs.
   """
   submitFeedback(input: FeedbackWidgetInput): String!
+  """
+  A mutation to update a feedback's status.
+  """
+  updateFeedback(input: FeedbackStatusInput): Feedback!
 }
-
 input FeedbackWidgetInput {
   rating: Int!
   comment: String
   originUrl: String!
+}
+
+input FeedbackStatusInput {
+  id: ID!
+  status: FeedbackStatus!
+}
+
+enum FeedbackStatus {
+  OPEN
+  CLOSED
 }
