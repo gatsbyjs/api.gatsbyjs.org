@@ -5,7 +5,7 @@
   "main": "index.mjs",
   "scripts": {
     "develop": "sls offline start",
-    "deploy": "sls deploy",
+    "deploy": "AWS_REGION=us-east-1 sls deploy",
     "test": "jest"
   },
   "license": "MIT",
@@ -32,7 +32,7 @@
     "semi": true
   },
   "engines": {
-    "node": "^8.10.x"
+    "node": "^11.x"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.51",
@@ -43,10 +43,10 @@
     "jest": "^24.5.0",
     "regenerator-runtime": "^0.13.2",
     "serverless": "^1.32.0",
-    "serverless-domain-manager": "^3.2.1",
+    "serverless-domain-manager": "^2.3.1",
     "serverless-dotenv-plugin": "^2.0.1",
     "serverless-offline": "^4.9.2",
-    "serverless-plugin-warmup": "^4.4.3-rc.1",
+    "serverless-plugin-warmup": "^4.7.1-rc.1",
     "serverless-webpack": "^5.2.0",
     "webpack": "^4.22.0",
     "webpack-node-externals": "^1.7.2"

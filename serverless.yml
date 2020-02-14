@@ -9,7 +9,7 @@ plugins:
 
 custom:
   customDomain:
-    domainName: api.gatsbyjs.org
+    domainName: api-gatsby.sidhartha.dev
     basePath: ''
     stage: ${self:provider.stage}
     createRoute53Record: true
@@ -19,14 +19,14 @@ custom:
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs12.x
   iamRoleStatements:
     - Effect: 'Allow'
       Action:
         - 'lambda:InvokeFunction'
       Resource: '*'
   stage: dev
-  region: us-west-2
+  region: us-east-1
 
 functions:
   publicAPI:
