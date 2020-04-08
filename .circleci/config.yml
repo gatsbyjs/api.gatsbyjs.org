@@ -13,6 +13,7 @@ jobs:
   test:
     executor: node
     steps:
+      - checkout
       - run: yarn --frozen-lockfile
       - run: yarn test
 
