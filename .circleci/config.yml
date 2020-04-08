@@ -1,3 +1,5 @@
+version: 2.1
+
 executors:
   node:
     parameters:
@@ -11,8 +13,9 @@ jobs:
   test:
     executor: node
     steps:
-      - yarn --frozen-lockfile
-      - yarn test
+      - checkout
+      - run: yarn --frozen-lockfile
+      - run: yarn test
 
 workflows:
   version: 2
