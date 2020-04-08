@@ -1,0 +1,14 @@
+executors:
+  node:
+    parameters:
+      image:
+        type: string
+        default: "10.13"
+    docker:
+      - image: circleci/node:<< parameters.image >>
+
+jobs:
+  executor: node
+  steps: 
+    - yarn --frozen-lockfile
+    - yarn test
