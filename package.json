@@ -2,7 +2,7 @@
   "name": "api.gatsbyjs.com",
   "version": "1.0.0",
   "author": "Jason Lengstorf <jason@gatsbyjs.com>",
-  "main": "index.mjs",
+  "main": ".webpack/service/main.js",
   "scripts": {
     "develop": "sls offline start",
     "deploy": "sls deploy",
@@ -24,6 +24,7 @@
     "jwks-rsa": "^1.2.1",
     "mem": "^4.0.0",
     "prisma-client-lib": "^1.20.7",
+    "serverless-google-cloudfunctions": "2.4.3",
     "serverless-http": "^1.7.0",
     "winston": "^3.0.0"
   },

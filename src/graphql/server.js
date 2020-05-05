@@ -1,7 +1,7 @@
 import express from 'express';
+import cors from 'cors';
 import jwt from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
-import serverless from 'serverless-http';
 import { ApolloServer } from 'apollo-server-express';
 import typeDefs from './schema.graphql';
 import resolvers from './resolvers';
@@ -20,6 +20,8 @@ const requireValidJWT = jwt({
 });
 
 const app = express();
+
+app.use(cors());
 
 if (process.env.NODE_ENV !== 'development') {
   // In production, make sure a valid token is present before doing anything.
@@ -44,14 +46,4 @@ const server = new ApolloServer({
 
 server.applyMiddleware({ app, cors: true });
 
-// Turn the Express server into a lambda-compatible handler function.
-const handler = serverless(app);
-
-export const graphql = async (event, context) => {
-  // Prevents Lambda cold starts
-  if (event.source === 'serverless-plugin-warmup') {
-    return 'Lambda is warm!';
-  }
-
-  return await handler(event, context);
-};
+export default app;
