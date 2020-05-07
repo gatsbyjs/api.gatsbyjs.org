@@ -1,53 +1,29 @@
 service: serverless-graphql
 
 plugins:
+  - serverless-google-cloudfunctions
   - serverless-dotenv-plugin
   - serverless-webpack
-  - serverless-offline
-  - serverless-domain-manager
-  - serverless-plugin-warmup
 
 custom:
-  customDomain:
-    domainName: api-gatsby.sidhartha.dev
-    basePath: ''
-    stage: ${self:provider.stage}
-    createRoute53Record: true
   webpack:
     webpackConfig: ./webpack.config.js
     includeModules: true
 
 provider:
-  name: aws
-  runtime: nodejs12.x
-  iamRoleStatements:
-    - Effect: 'Allow'
-      Action:
-        - 'lambda:InvokeFunction'
-      Resource: '*'
+  name: google
   stage: dev
-  region: us-east-1
+  runtime: nodejs8
+  region: us-central1
+  project: gatsby-core
+  credentials: ~/Downloads/gatsby-core.json
 
 functions:
-  publicAPI:
-    handler: src/graphql/public.graphql
-    warmup: true
+  public:
+    handler: public
     events:
-      - http:
-          path: public
-          method: post
-          cors: true
+      - http: foo
   graphql:
-    handler: src/graphql/server.graphql
-    warmup: true
+    handler: graphql
     events:
-      - http:
-          path: graphql
-          method: post
-          cors: true
-  playground:
-    handler: src/graphql/public.graphql
-    events:
-      - http:
-          path: public
-          method: get
+      - http: foo
