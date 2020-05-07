@@ -1,4 +1,4 @@
-endpoint: https://us1.prisma.sh/jason-lengstorf-418dad/api-gatsby-org/dev
+endpoint: https://us1.prisma.sh/gatsby/api-gatsby-org/dev
 datamodel: datamodel.prisma
 
 generate:
