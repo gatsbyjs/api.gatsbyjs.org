@@ -6,7 +6,7 @@ This is the GraphQL API that powers the maintainer dashboard for the [Gatsby Sto
 
 Services:
 
-- [AWS Lambda](https://aws.com/lambda)
+- [Google Cloud Functions](https://cloud.google.com/functions)
 - [Prisma Cloud](https://prisma.io/cloud)
 - [Shopify](https://shopify.com)
 
@@ -16,6 +16,7 @@ API:
 
 Frameworks:
 
+- [ExpressJS](https://expressjs.com/)
 - [Prisma Client](https://www.prisma.io/client/client-typescript)
 - [Serverless Framework](https://serverless.com/)
 
@@ -39,7 +40,7 @@ For a full schema reference, see [the schema](./src/graphql/public-schema.graphq
 
 ### Step 1: Clone the API
 
-```bash
+```shell
 # Clone the repo.
 git clone git@github.com:gatsbyjs/api.gatsbyjs.org.git
 
@@ -52,7 +53,7 @@ yarn # or `npm install`
 
 ### Step 2: Configure `env` variables
 
-```bash
+```shell
 # Copy the example .env file into a real .env file
 cp .env.EXAMPLE .env
 ```
@@ -75,25 +76,30 @@ The `.env.EXAMPLE` file contains a list of `env` variables used in various locat
 | `SHOPIFY_DISCOUNT_CODE` | The discount code supplied by the Shopify API for the user.      |
 | `SHOPIFY_URI`           | The Shopify API domain.                                          |
 
-### Step 3: Start the API locally
+### Step 3: Testing the API
 
-```bash
-yarn develop
+The `serverless-offline` package only works to emulate AWS serverless code, since transitioning to GCP it's less ergonomic to test locally.
+
+You can invoke a function locally with this command, (from to the [serverless documentation](https://www.serverless.com/framework/docs/providers/google/cli-reference/invoke-local/)):
+
+```shell
+serverless invoke local --function public --data '{ "query": "query { ping }" }'
 ```
 
-The develop script will run the `serverless offline start` command, spinning up a local version of the serverless lambda functions that run on your machine to test with.
-
-### Step 4: Open the GraphQL Playground
-
-Open http://localhost:3000/playground to use this API locally.
-
-> **NOTE:** The JWT authentication is explicitly disabled in development. This is because we assume that if you’ve got access to the various API keys required to run this API, you’re trustworthy. 😅
+However there are some issues circulating on the serverless-google-cloudfunctions package around better support for local emulation and development.
 
 #### How to Test This API Using cURL
 
 If you want to send straight-up `POST` requests so you can wear sunglasses indoors and pretend you’re a hacker, you can also send cURL requests like so:
 
-```bash
+```shell
+curl \
+  -H "Content-Type: application/json" \
+  --data '{ "query": "query { getFeedback { id, comment } }" }' \
+  -X POST http://localhost:3000/public
+```
+
+```shell
 curl \
   -H "Content-Type: application/json" \
   --data '{
@@ -105,32 +111,42 @@ curl \
   -X POST http://localhost:3000/graphql
 ```
 
-**IMPORTANT:** Open another terminal. The API needs to still be running.
+**Note:** These commands need the POST url to match a place where they are running like `api.gatsbyjs.org`, or to a local port if you're emulating the functions locally.
 
 ## Deploying Changes
 
-```bash
+Before the functions can be deployed, you need to save a keys file to your local machine that the `serverless.yml` references.
+
+Verify that you have downloaded the keys file from where it's stored (in 1Password for Gatsby employees) and referenced in the `serverless.yml`:
+
+```yaml
+provider:
+  name: google
+  stage: dev
+  runtime: nodejs8
+  region: us-central1
+  project: gatsby-core
+  credentials: ~/Downloads/gatsby-core.json # <-- this needs to match where you're file is
+```
+
+The serverless deploy command is set up in the `package.json` to be run by the following yarn command:
+
+```shell
 yarn deploy
 ```
 
+Serverless will zip up all the files and deploy them to Google Cloud Functions over the top of existing functions of the same name and project.
+
+For deployment to multiple environments
+
 ## Architecture
 
-This repository is deployed using the Serverless framework to configure all the pieces of the AWS infrastructure required to function. The following things take place on AWS:
+This repository is deployed using the Serverless framework to configure all the pieces of the infrastructure required to function. The following things take place on GCP:
 
-- the source code is packaged up uploaded to S3
-- Lambda functions are created for each GraphQL endpoint
-- an API is created on API gateway
-- a Cloudfront distribution is created (and it's address will be output at the end of the logs of a successful deploy under the heading "Distribution Domain Name")
+- the source code is packaged up uploaded to Google Cloud Storage
+- Functions are created for each GraphQL endpoint
 
 Other pieces of the puzzle that fit everything together:
 
-- a DNS record pointing at the Cloudfront distribution needs to be set up for the domain that the API is being deployed to
+- a DNS record pointing at the deployed functions needs to be set up for the domain that the API is being deployed to
 - a prisma service serves as the database for the feedback gathered by the feedback widget on gatsbyjs.org, the endpoint for it is in `prisma/prisma.yml`
-
-Some gotchas in this process:
-
-- you must have created and verified a certificate in AWS Certificate Manageer for the domain you are attempting to deploy to (the domain you are deploying to is listed in the `serverless.yml` under custom:customDomain:domainName)
-- you cannot deploy to a domain if another existing cloudfront distribution is already using that domain (for instance, if the API were deployed to a personal AWS account, it would have to be removed there before being deployed to an organization's AWS console)
-- some of the serverless plugins have some quirky bugs
-  - `serverless-domain-manager` will error out of the deployment with `ConfigError: Missing region in config` if AWS_REGION=us-east-1 is not included before the deploy command
-- you might see an error: `Error: Could not set up basepath mapping. Try running sls create_domain first.` if you are deploying for the first time, running `sls create_domain` should resolve it, this occurs if AWS doesn't have a custom domain name set up in API Gateway
