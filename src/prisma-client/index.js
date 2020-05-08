@@ -11,12 +11,16 @@ var models = [
   {
     name: "Feedback",
     embedded: false
+  },
+  {
+    name: "FeedbackStatus",
+    embedded: false
   }
 ];
 exports.Prisma = prisma_lib_1.makePrismaClientClass({
   typeDefs,
   models,
-  endpoint: `https://us1.prisma.sh/jason-lengstorf-418dad/api-gatsby-org/dev`,
+  endpoint: `https://us1.prisma.sh/gatsby/api-gatsby-org/prod`,
   secret: `${process.env["PRISMA_SECRET"]}`
 });
 exports.prisma = new exports.Prisma();
