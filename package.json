@@ -33,7 +33,7 @@
     "semi": true
   },
   "engines": {
-    "node": ">=10.13.0"
+    "node": ">=10.14.2"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.51",
