@@ -123,7 +123,7 @@ Verify that you have downloaded the keys file from where it's stored (in 1Passwo
 provider:
   name: google
   stage: dev
-  runtime: nodejs8
+  runtime: nodejs10
   region: us-central1
   project: gatsby-core
   credentials: ~/Downloads/gatsby-core.json # <-- this needs to match where you're file is
