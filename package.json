@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "@octokit/rest": "^15.8.1",
-    "apollo-server-express": "^2.1.0",
+    "apollo-server-express": "^2.14.2",
     "axios": "^0.18.1",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
