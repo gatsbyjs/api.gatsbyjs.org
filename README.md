@@ -1,6 +1,6 @@
 # Gatsby API
 
-This is the GraphQL API that powers the maintainer dashboard for the [Gatsby Store](https://store.gatsbyjs.org) and the relevant parts of [the docs](https://gatsbyjs.org) like the feedback widget. It handles calls to privileged services such as Shopify and MailChimp to avoid exposing API keys in a client-side app.
+This is the GraphQL API that powers the maintainer dashboard for the [Gatsby Store](https://store.gatsbyjs.org) and the relevant parts of [the docs](https://gatsbyjs.com) like the feedback widget. It handles calls to privileged services such as Shopify and MailChimp to avoid exposing API keys in a client-side app.
 
 ## Production environment
 
