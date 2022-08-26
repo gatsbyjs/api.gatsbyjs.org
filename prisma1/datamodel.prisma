@@ -6,18 +6,3 @@ type Contributor {
   githubUsername: String! @unique
   shopifyCustomerID: String @unique
 }
-
-type Feedback {
-  id: ID! @id
-  updatedAt: DateTime! @updatedAt
-  createdAt: DateTime! @createdAt
-  rating: Int!
-  comment: String
-  originUrl: String!
-  status: FeedbackStatus! @default(value: OPEN)
-}
-
-enum FeedbackStatus {
-  OPEN
-  CLOSED
-}
