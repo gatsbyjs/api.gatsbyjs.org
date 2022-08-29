@@ -8,7 +8,7 @@ async function main() {
 
   const contributorsResult = await fetch(URI, {
     headers: {
-      Authorization: `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2NjE1OTg2OTAsIm5iZiI6MTY2MTUxMjI5MH0.xQPvhCVAvi-WJulm-fiz_8um2WwQGZP1czpqrQeFM5k`,
+      Authorization: `Bearer ${process.env.BEARER_TOKEN}`,
       'Content-Type': 'application/json',
     },
     method: `POST`,
