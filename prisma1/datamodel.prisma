@@ -1,8 +1,0 @@
-type Contributor {
-  id: ID! @id
-  updatedAt: DateTime! @updatedAt
-  createdAt: DateTime! @createdAt
-  email: String @unique
-  githubUsername: String! @unique
-  shopifyCustomerID: String @unique
-}

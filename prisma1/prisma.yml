@@ -1,8 +1,0 @@
-endpoint: https://us1.prisma.sh/gatsby/api-gatsby-org/prod
-datamodel: datamodel.prisma
-
-generate:
-  - generator: javascript-client
-    output: ../src/prisma-client/
-
-secret: ${env:PRISMA_SECRET}

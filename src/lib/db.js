@@ -3,11 +3,12 @@ import { getContributorInfo, inviteIfNecessary } from '../lib/github';
 import {
   createShopifyCustomer,
   getEarnedDiscountCodes,
-  addTagsToCustomer
+  addTagsToCustomer,
 } from '../lib/shopify';
-import { prisma } from '../prisma-client';
+import { PrismaClient } from '@prisma/client';
 import getLogger from './logger';
 
+const prisma = new PrismaClient();
 const logger = getLogger('lib/db');
 
 /** @typedef {{ name: string, url: string }} GitHubLabel */
@@ -49,17 +50,17 @@ const logger = getLogger('lib/db');
  * @param {string} githubUsername
  * @return {Contributor}
  */
-export const getContributorByGitHubUsername = async githubUsername => {
+export const getContributorByGitHubUsername = async (githubUsername) => {
   logger.verbose(`Loading the contributor record for @${githubUsername}`);
   const [contributor, githubInfo] = await Promise.all([
-    prisma.contributor({ githubUsername }),
-    getContributorInfo(githubUsername)
+    prisma.contributor.findUnique({ where: { githubUsername } }),
+    getContributorInfo(githubUsername),
   ]);
 
   const github = {
     username: githubUsername,
     contributionCount: githubInfo.totalContributions,
-    pullRequests: githubInfo.pullRequests
+    pullRequests: githubInfo.pullRequests,
   };
 
   if (!contributor) {
@@ -67,13 +68,13 @@ export const getContributorByGitHubUsername = async githubUsername => {
 
     return {
       githubUsername,
-      github
+      github,
     };
   }
 
   return {
     ...contributor,
-    github
+    github,
   };
 };
 
@@ -91,7 +92,7 @@ export const getContributorByGitHubUsername = async githubUsername => {
  * @param {ContributorInput} input details about the contributor record to be created
  * @return {Contributor}
  */
-export const createContributor = async input => {
+export const createContributor = async (input) => {
   logger.verbose(
     `Creating a new contributor record for @${input.githubUsername}...`
   );
@@ -100,31 +101,32 @@ export const createContributor = async input => {
   const shopifyCustomerID = await createShopifyCustomer(input);
 
   // 2. Load GitHub data and create a Prisma record in parallel.
-  const [
-    { totalContributions: contributionCount, pullRequests }
-  ] = await Promise.all([
-    getContributorInfo(input.githubUsername),
-    prisma.createContributor({
-      githubUsername: input.githubUsername,
-      email: input.email,
-      shopifyCustomerID
-    })
-  ]).catch(error => {
-    logger.error(error.message);
+  const [{ totalContributions: contributionCount, pullRequests }] =
+    await Promise.all([
+      getContributorInfo(input.githubUsername),
+      prisma.contributor.create({
+        data: {
+          githubUsername: input.githubUsername,
+          email: input.email,
+          shopifyCustomerID,
+        },
+      }),
+    ]).catch((error) => {
+      logger.error(error.message);
 
-    const [, field] =
-      error.message.match(
-        /unique constraint would be violated.+Field name = (\w+)$/
-      ) || [];
+      const [, field] =
+        error.message.match(
+          /unique constraint would be violated.+Field name = (\w+)$/
+        ) || [];
 
-    if (field === 'githubUsername') {
-      throw new ApolloError(
-        `An account already exists for the GitHub user @${input.githubUsername}`
-      );
-    }
+      if (field === 'githubUsername') {
+        throw new ApolloError(
+          `An account already exists for the GitHub user @${input.githubUsername}`
+        );
+      }
 
-    throw new ApolloError(error.message);
-  });
+      throw new ApolloError(error.message);
+    });
 
   logger.verbose(`New contributor record created`);
 
@@ -153,7 +155,7 @@ export const createContributor = async input => {
 
     await Promise.all([
       addTagsToCustomer(shopifyCustomerID, tags),
-      inviteIfNecessary(input.githubUsername)
+      inviteIfNecessary(input.githubUsername),
     ]);
   }
 
@@ -164,7 +166,7 @@ export const createContributor = async input => {
     github: {
       username: input.githubUsername,
       contributionCount,
-      pullRequests
-    }
+      pullRequests,
+    },
   };
 };
