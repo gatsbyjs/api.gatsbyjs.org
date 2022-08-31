@@ -95,13 +95,6 @@ If you want to send straight-up `POST` requests so you can wear sunglasses indoo
 ```shell
 curl \
   -H "Content-Type: application/json" \
-  --data '{ "query": "query { getFeedback { id, comment } }" }' \
-  -X POST http://localhost:3000/public
-```
-
-```shell
-curl \
-  -H "Content-Type: application/json" \
   --data '{
       "query": "query($user:String!) { contributorInformation(githubUsername:$user) { totalContributions } }",
       "variables": {
