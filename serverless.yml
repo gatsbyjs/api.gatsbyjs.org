@@ -13,16 +13,12 @@ custom:
 provider:
   name: google
   stage: dev
-  runtime: nodejs10
+  runtime: nodejs
   region: us-central1
   project: gatsby-core
   credentials: ~/Projects/keys/gatsby-core.json
 
 functions:
-  public:
-    handler: public
-    events:
-      - http: foo
   graphql:
     handler: graphql
     events:
