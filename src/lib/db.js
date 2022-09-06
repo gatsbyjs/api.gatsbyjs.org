@@ -5,10 +5,9 @@ import {
   getEarnedDiscountCodes,
   addTagsToCustomer,
 } from '../lib/shopify';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../client';
 import getLogger from './logger';
 
-const prisma = new PrismaClient();
 const logger = getLogger('lib/db');
 
 /** @typedef {{ name: string, url: string }} GitHubLabel */

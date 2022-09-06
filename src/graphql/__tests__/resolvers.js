@@ -1,6 +1,6 @@
 import * as gh from '@octokit/rest';
 import axios from 'axios';
-import { prisma } from '../../prisma-client';
+import prisma from '../../client';
 import * as github from '../../lib/github';
 import resolvers from '../resolvers';
 
@@ -32,12 +32,14 @@ import resolvers from '../resolvers';
 
 jest.mock('axios');
 
-jest.mock('../../prisma-client', () => ({
-  prisma: {
-    createContributor: jest.fn(),
-    contributor: jest.fn()
-  }
-}));
+jest.mock('../../client', () => {
+  return {
+    contributor: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+    },
+  };
+});
 
 const mockGitHubIssueSearchResult = {
   data: {
@@ -48,10 +50,10 @@ const mockGitHubIssueSearchResult = {
         title: 'test issue',
         html_url: 'https://github.com/gatsbyjs/gatsby/issues/1',
         number: 1,
-        labels: [{ name: 'test label', url: 'https://example.org' }]
-      }
-    ]
-  }
+        labels: [{ name: 'test label', url: 'https://example.org' }],
+      },
+    ],
+  },
 };
 
 const mockShopifyCustomerCreateSuccess = {
@@ -59,20 +61,20 @@ const mockShopifyCustomerCreateSuccess = {
     data: {
       customerCreate: {
         customer: { id: 'gid://shopify/Customer/1234567891234' },
-        userErrors: []
-      }
-    }
-  }
+        userErrors: [],
+      },
+    },
+  },
 };
 
 const mockShopifyAddTagsSuccess = {
-  data: { data: { tagsAdd: { userErrors: [] } } }
+  data: { data: { tagsAdd: { userErrors: [] } } },
 };
 
 const mockPrismaContributor = {
   githubUsername: 'gatsbot',
   email: 'team@gatsbyjs.com',
-  shopifyCustomerID: 'gid://shopify/Customer/1234567891234'
+  shopifyCustomerID: 'gid://shopify/Customer/1234567891234',
 };
 
 describe('graphql/resolvers', () => {
@@ -86,7 +88,7 @@ describe('graphql/resolvers', () => {
         gh.search.issues.mockResolvedValueOnce(mockGitHubIssueSearchResult);
 
         const result = await resolvers.Query.contributorInformation(null, {
-          githubUsername: 'gatsbot'
+          githubUsername: 'gatsbot',
         });
 
         expect(result).toEqual({
@@ -97,9 +99,9 @@ describe('graphql/resolvers', () => {
               title: 'test issue',
               url: 'https://github.com/gatsbyjs/gatsby/issues/1',
               number: 1,
-              labels: [{ name: 'test label', url: 'https://example.org' }]
-            }
-          ]
+              labels: [{ name: 'test label', url: 'https://example.org' }],
+            },
+          ],
         });
       });
     });
@@ -109,7 +111,7 @@ describe('graphql/resolvers', () => {
         gh.search.issues.mockResolvedValueOnce(mockGitHubIssueSearchResult);
 
         const result = await resolvers.Query.openIssues(null, {
-          label: 'test label'
+          label: 'test label',
         });
 
         expect(result).toEqual({
@@ -120,20 +122,22 @@ describe('graphql/resolvers', () => {
               title: 'test issue',
               url: 'https://github.com/gatsbyjs/gatsby/issues/1',
               number: 1,
-              labels: [{ name: 'test label', url: 'https://example.org' }]
-            }
-          ]
+              labels: [{ name: 'test label', url: 'https://example.org' }],
+            },
+          ],
         });
       });
     });
 
     describe('getContributor', () => {
       test('loads a contributor by their GitHub username', async () => {
-        prisma.contributor.mockResolvedValueOnce(mockPrismaContributor);
+        prisma.contributor.findUnique.mockResolvedValueOnce(
+          mockPrismaContributor
+        );
         gh.search.issues.mockResolvedValueOnce(mockGitHubIssueSearchResult);
 
         const contributor = await resolvers.Query.getContributor(null, {
-          githubUsername: 'gatsbot'
+          githubUsername: 'gatsbot',
         });
 
         expect(contributor).toEqual({
@@ -149,22 +153,22 @@ describe('graphql/resolvers', () => {
                 title: 'test issue',
                 url: 'https://github.com/gatsbyjs/gatsby/issues/1',
                 number: 1,
-                labels: [{ name: 'test label', url: 'https://example.org' }]
-              }
-            ]
-          }
+                labels: [{ name: 'test label', url: 'https://example.org' }],
+              },
+            ],
+          },
         });
       });
 
       test('returns only GitHub data if no contributor record exists', async () => {
-        prisma.contributor.mockResolvedValueOnce(null);
+        prisma.contributor.findUnique.mockResolvedValueOnce(null);
 
         gh.search.issues.mockResolvedValueOnce({
-          data: { total_count: 0, items: [] }
+          data: { total_count: 0, items: [] },
         });
 
         const contributor = await resolvers.Query.getContributor(null, {
-          githubUsername: 'gatsbot'
+          githubUsername: 'gatsbot',
         });
 
         expect(contributor).toEqual({
@@ -172,8 +176,8 @@ describe('graphql/resolvers', () => {
           github: {
             username: 'gatsbot',
             contributionCount: 0,
-            pullRequests: []
-          }
+            pullRequests: [],
+          },
         });
       });
     });
@@ -185,7 +189,7 @@ describe('graphql/resolvers', () => {
         githubUsername: 'octocat',
         email: 'test@example.com',
         firstName: 'Test',
-        subscribe: true
+        subscribe: true,
       };
 
       test('loads the discount code for a valid customer', async () => {
@@ -199,7 +203,7 @@ describe('graphql/resolvers', () => {
 
         expect(result).toEqual({
           discountCode: process.env.SHOPIFY_DISCOUNT_CODE,
-          errors: []
+          errors: [],
         });
       });
 
@@ -213,7 +217,7 @@ describe('graphql/resolvers', () => {
 
         expect(response).toEqual({
           discountCode: null,
-          errors: [expect.stringMatching(/isn’t a contributor/)]
+          errors: [expect.stringMatching(/isn’t a contributor/)],
         });
       });
 
@@ -230,7 +234,7 @@ describe('graphql/resolvers', () => {
 
         expect(response).toEqual({
           discountCode: null,
-          errors: [new Error('Something went wrong')]
+          errors: [new Error('Something went wrong')],
         });
       });
     });
@@ -241,8 +245,8 @@ describe('graphql/resolvers', () => {
           githubUsername: 'gatsbot',
           email: 'team@gatsbyjs.com',
           acceptsMarketing: true,
-          firstName: 'Gatsbot'
-        }
+          firstName: 'Gatsbot',
+        },
       };
 
       test('creates a new contributor record', async () => {
@@ -291,7 +295,7 @@ describe('graphql/resolvers', () => {
         gh.search.issues.mockResolvedValueOnce(mockGitHubIssueSearchResult);
         gh.orgs.getTeamMembership.mockRejectedValueOnce({
           code: 500,
-          message: 'Internal server error'
+          message: 'Internal server error',
         });
 
         await resolvers.Mutation.createContributor(null, contributorInput);
@@ -304,7 +308,7 @@ describe('graphql/resolvers', () => {
         axios.mockResolvedValueOnce(mockShopifyCustomerCreateSuccess);
 
         // Mock a duplicate field error from Prisma.
-        prisma.createContributor.mockRejectedValueOnce(
+        prisma.contributor.create.mockRejectedValueOnce(
           new Error(
             'A unique constraint would be violated for Field name = githubUsername'
           )
@@ -325,22 +329,22 @@ describe('graphql/resolvers', () => {
                 customerCreate: {
                   customer: null,
                   userErrors: [
-                    { message: 'Error: Email has already been taken.' }
-                  ]
-                }
-              }
-            }
+                    { message: 'Error: Email has already been taken.' },
+                  ],
+                },
+              },
+            },
           })
           .mockResolvedValueOnce({
             data: {
               data: {
                 customers: {
                   edges: [
-                    { node: { id: 'gid://shopify/Customer/1234567891234' } }
-                  ]
-                }
-              }
-            }
+                    { node: { id: 'gid://shopify/Customer/1234567891234' } },
+                  ],
+                },
+              },
+            },
           });
 
         const result = await resolvers.Mutation.createContributor(
@@ -361,10 +365,10 @@ describe('graphql/resolvers', () => {
             data: {
               customerCreate: {
                 customer: null,
-                userErrors: [{ message: 'Error: Some other error.' }]
-              }
-            }
-          }
+                userErrors: [{ message: 'Error: Some other error.' }],
+              },
+            },
+          },
         });
 
         try {
@@ -379,7 +383,7 @@ describe('graphql/resolvers', () => {
 
         axios.mockResolvedValueOnce(mockShopifyCustomerCreateSuccess);
 
-        prisma.createContributor.mockRejectedValueOnce(
+        prisma.contributor.create.mockRejectedValueOnce(
           new Error('Something unexpected happened.')
         );
 
@@ -393,12 +397,14 @@ describe('graphql/resolvers', () => {
 
     describe('updateContributorTags', () => {
       test('adds the appropriate tags for a first-level contributor', async () => {
-        prisma.contributor.mockResolvedValueOnce(mockPrismaContributor);
+        prisma.contributor.findUnique.mockResolvedValueOnce(
+          mockPrismaContributor
+        );
         gh.search.issues.mockResolvedValueOnce(mockGitHubIssueSearchResult);
         axios.mockResolvedValueOnce(mockShopifyAddTagsSuccess);
 
         await resolvers.Mutation.updateContributorTags(null, {
-          githubUsername: 'gatsbot'
+          githubUsername: 'gatsbot',
         });
 
         const mutation = axios.mock.calls[0][0].data;
@@ -407,17 +413,19 @@ describe('graphql/resolvers', () => {
       });
 
       test('adds the appropriate tags for a second-level contributor', async () => {
-        prisma.contributor.mockResolvedValueOnce(mockPrismaContributor);
+        prisma.contributor.findUnique.mockResolvedValueOnce(
+          mockPrismaContributor
+        );
         gh.search.issues.mockResolvedValueOnce({
           data: {
             ...mockGitHubIssueSearchResult.data,
-            total_count: 5
-          }
+            total_count: 5,
+          },
         });
         axios.mockResolvedValueOnce(mockShopifyAddTagsSuccess);
 
         await resolvers.Mutation.updateContributorTags(null, {
-          githubUsername: 'gatsbot'
+          githubUsername: 'gatsbot',
         });
 
         const mutation = axios.mock.calls[0][0].data;
@@ -426,27 +434,29 @@ describe('graphql/resolvers', () => {
       });
 
       test('adds no tags if the contributor record doesn’t exist', async () => {
-        prisma.contributor.mockResolvedValueOnce(null);
+        prisma.contributor.findUnique.mockResolvedValueOnce(null);
         gh.search.issues.mockResolvedValueOnce(mockGitHubIssueSearchResult);
 
         await resolvers.Mutation.updateContributorTags(null, {
-          githubUsername: 'gatsbot'
+          githubUsername: 'gatsbot',
         });
 
         expect(axios).not.toBeCalled();
       });
 
       test('adds no tags if the contributor has no contributions', async () => {
-        prisma.contributor.mockResolvedValueOnce(mockPrismaContributor);
+        prisma.contributor.findUnique.mockResolvedValueOnce(
+          mockPrismaContributor
+        );
         gh.search.issues.mockResolvedValueOnce({
           data: {
             ...mockGitHubIssueSearchResult.data,
-            total_count: 0
-          }
+            total_count: 0,
+          },
         });
 
         await resolvers.Mutation.updateContributorTags(null, {
-          githubUsername: 'gatsbot'
+          githubUsername: 'gatsbot',
         });
 
         expect(axios).not.toBeCalled();
@@ -461,7 +471,7 @@ describe('graphql/resolvers', () => {
 
         try {
           await resolvers.Mutation.updateContributorTags(null, {
-            githubUsername: 'gatsbot'
+            githubUsername: 'gatsbot',
           });
         } catch (error) {
           expect(error.message).toBe('Something went wrong.');
@@ -475,18 +485,18 @@ describe('graphql/resolvers', () => {
       test('returns an intermediate object when a customer ID exists', async () => {
         const result = await resolvers.Contributor.shopify({
           shopifyCustomerID: 'gid://shopify/Customer/1234567891234',
-          github: { contributionCount: 1 }
+          github: { contributionCount: 1 },
         });
 
         expect(result).toEqual({
           id: 'gid://shopify/Customer/1234567891234',
-          count: 1
+          count: 1,
         });
       });
 
       test('returns null when no customer ID exists', async () => {
         const result = await resolvers.Contributor.shopify({
-          github: { contributionCount: 1 }
+          github: { contributionCount: 1 },
         });
 
         expect(result).toBeNull();
@@ -502,21 +512,21 @@ describe('graphql/resolvers', () => {
             data: {
               customer: {
                 orders: {
-                  edges: [{ node: { discountCode: 'BUILDWITHGATSBY' } }]
-                }
-              }
-            }
-          }
+                  edges: [{ node: { discountCode: 'BUILDWITHGATSBY' } }],
+                },
+              },
+            },
+          },
         });
 
         const result = await resolvers.ShopifyInfo.codes({
           id: 'gid://shopify/Customer/1234567891234',
-          count: 5
+          count: 5,
         });
 
         expect(result).toEqual([
           { code: 'BUILDWITHGATSBY', used: true },
-          { code: 'HOLYBUCKETS', used: false }
+          { code: 'HOLYBUCKETS', used: false },
         ]);
       });
     });
