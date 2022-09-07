@@ -1,13 +1,12 @@
 # Gatsby API
 
-This is the GraphQL API that powers the maintainer dashboard for the [Gatsby Store](https://store.gatsbyjs.org) and the relevant parts of [the docs](https://gatsbyjs.org) like the feedback widget. It handles calls to privileged services such as Shopify and MailChimp to avoid exposing API keys in a client-side app.
+This is the GraphQL API that powers the maintainer dashboard for the [Gatsby Store](https://store.gatsbyjs.org). It handles calls to privileged services such as Shopify and MailChimp to avoid exposing API keys in a client-side app.
 
 ## Production environment
 
 Services:
 
 - [Google Cloud Functions](https://cloud.google.com/functions)
-- [Prisma Cloud](https://prisma.io/cloud)
 - [Shopify](https://shopify.com)
 
 API:
@@ -29,12 +28,6 @@ _The way these services and frameworks work together is explained in more detail
 All GraphQL calls for the store are sent to this endpoint.
 
 For a full schema reference, see [the schema](./src/graphql/schema.graphql).
-
-### `/public`
-
-All GraphQL calls from gatsbyjs.org are sent to this endpoint.
-
-For a full schema reference, see [the schema](./src/graphql/public-schema.graphql).
 
 ## Running This Repo Locally
 
@@ -59,6 +52,8 @@ cp .env.EXAMPLE .env
 ```
 
 The `.env.EXAMPLE` file contains a list of `env` variables used in various locations throughout the repository. Set each variable's value per your environment setup and credentials in `.env`.
+
+If you are an employee at Gatsby, you can find values for these env vars in 1Password in the Engineering (read only) vault.
 
 | Name                    | Description                                                      |
 | ----------------------- | ---------------------------------------------------------------- |
@@ -110,7 +105,7 @@ curl \
 
 Before the functions can be deployed, you need to save a keys file to your local machine that the `serverless.yml` references.
 
-Verify that you have downloaded the keys file from where it's stored (in 1Password for Gatsby employees) and referenced in the `serverless.yml`:
+Verify that you have downloaded the keys file from where it's stored (found in 1Password for Gatsby employees in the Growth vault) and referenced in the `serverless.yml`:
 
 ```yaml
 provider:
@@ -139,7 +134,6 @@ This repository is deployed using the Serverless framework to configure all the 
 - the source code is packaged up uploaded to Google Cloud Storage
 - Functions are created for each GraphQL endpoint
 
-Other pieces of the puzzle that fit everything together:
+The other piece of the puzzle that fits everything together:
 
 - a DNS record pointing at the deployed functions needs to be set up for the domain that the API is being deployed to
-- a prisma service serves as the database for the feedback gathered by the feedback widget on gatsbyjs.org, the endpoint for it is in `prisma/prisma.yml`
