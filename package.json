@@ -6,7 +6,6 @@
   "scripts": {
     "develop": "sls offline start",
     "deploy": "AWS_REGION=us-east-1 sls deploy",
-    "migrate": "ts-node ./migration/migrate.ts",
     "test": "jest"
   },
   "license": "MIT",
@@ -21,7 +20,6 @@
     "express": "^4.16.4",
     "express-jwt": "^5.3.1",
     "graphql": "^14.0.2",
-    "graphql-playground-middleware-express": "^1.7.6",
     "graphql-tag": "^2.10.0",
     "jwks-rsa": "^1.2.1",
     "mem": "^4.0.0",
@@ -39,12 +37,10 @@
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.51",
     "@babel/preset-env": "^7.1.0",
-    "@types/node-fetch": "^2.6.2",
     "babel-core": "^7.0.0-0",
     "babel-jest": "^24.5.0",
     "babel-loader": "^8.0.4",
     "jest": "^26.0.1",
-    "node-fetch": "^2.6.7",
     "prisma": "^4.2.1",
     "regenerator-runtime": "^0.13.2",
     "serverless": "^1.32.0",
@@ -53,7 +49,6 @@
     "serverless-offline": "^4.9.2",
     "serverless-plugin-warmup": "^4.7.1-rc.1",
     "serverless-webpack": "^5.2.0",
-    "typescript": "^4.8.2",
     "webpack": "^4.43.0",
     "webpack-node-externals": "^1.7.2"
   },
