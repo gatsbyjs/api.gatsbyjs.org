@@ -11,6 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "@octokit/rest": "^15.8.1",
+    "@prisma/client": "^4.2.1",
     "apollo-server-express": "^2.1.0",
     "axios": "^0.18.1",
     "body-parser": "^1.18.3",
@@ -19,11 +20,9 @@
     "express": "^4.16.4",
     "express-jwt": "^5.3.1",
     "graphql": "^14.0.2",
-    "graphql-playground-middleware-express": "^1.7.6",
     "graphql-tag": "^2.10.0",
     "jwks-rsa": "^1.2.1",
     "mem": "^4.0.0",
-    "prisma-client-lib": "^1.20.7",
     "serverless-google-cloudfunctions": "2.4.3",
     "serverless-http": "^1.7.0",
     "winston": "^3.0.0"
@@ -33,7 +32,7 @@
     "semi": true
   },
   "engines": {
-    "node": ">=10.14.2"
+    "node": ">=14.17.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.51",
@@ -42,6 +41,7 @@
     "babel-jest": "^24.5.0",
     "babel-loader": "^8.0.4",
     "jest": "^26.0.1",
+    "prisma": "^4.2.1",
     "regenerator-runtime": "^0.13.2",
     "serverless": "^1.32.0",
     "serverless-domain-manager": "^2.3.1",
